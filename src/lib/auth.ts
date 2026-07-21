@@ -4,9 +4,6 @@ export function getCookieName(): string {
   const cookieName = process.env.JWT_COOKIE_NAME;
   
   if (!cookieName) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("JWT_COOKIE_NAME environment variable is missing in production.");
-    }
     return "bossperfumes_auth";
   }
   
