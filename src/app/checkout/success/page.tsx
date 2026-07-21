@@ -6,7 +6,7 @@ export const metadata = {
   title: "Order Successful | Boss Perfumes",
 };
 
-export default function CheckoutSuccessPage({ searchParams }: { searchParams: { cko-session-id?: string } }) {
+export default function CheckoutSuccessPage() {
   return (
     <div className="pt-32 pb-24 px-6 lg:px-12 bg-brand-bg min-h-screen flex items-center justify-center">
       <ClearCartEffect />
