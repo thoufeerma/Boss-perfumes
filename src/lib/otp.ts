@@ -1,0 +1,10 @@
+import crypto from 'crypto';
+
+export function generateOTP(length: number = 6): string {
+  // Use crypto.randomInt for secure random number generation
+  let otp = '';
+  for (let i = 0; i < length; i++) {
+    otp += crypto.randomInt(0, 10).toString();
+  }
+  return otp;
+}

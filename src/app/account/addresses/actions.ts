@@ -2,6 +2,7 @@
 
 import { getAuthenticatedCustomer } from "@/lib/customer";
 import { fetchAuthenticated } from "@/lib/fetchAuthenticated";
+import { fetchWC } from "@/api/client";
 import { revalidatePath } from "next/cache";
 
 export async function updateAddress(type: "billing" | "shipping", formData: FormData) {
@@ -25,10 +26,14 @@ export async function updateAddress(type: "billing" | "shipping", formData: Form
       }
     };
 
-    await fetchAuthenticated(`customers/${customerId}`, {
+    const updatedCustomer = await fetchWC(`customers/${customerId}`, {
       method: "PUT",
       body: JSON.stringify(payload)
     });
+    
+    if (updatedCustomer && updatedCustomer.code) {
+       throw new Error(updatedCustomer.message || "Failed to update address");
+    }
 
     revalidatePath("/account/addresses");
     revalidatePath("/account");

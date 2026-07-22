@@ -28,7 +28,7 @@ export const getAuthenticatedCustomer = cache(async () => {
   // 1. Try fast path: Direct ID lookup if available
   if (jwtId) {
     try {
-      const customer = await fetchWC(`customers/${jwtId}`);
+      const customer = await fetchWC(`customers/${jwtId}`, { cache: 'no-store' });
       if (customer && !Array.isArray(customer) && customer.id) {
         return customer;
       }
@@ -45,7 +45,7 @@ export const getAuthenticatedCustomer = cache(async () => {
   // 2. Fallback path: Try email lookup
   if (jwtEmail) {
     try {
-      const customers = await fetchWC(`customers?email=${encodeURIComponent(jwtEmail)}`);
+      const customers = await fetchWC(`customers?email=${encodeURIComponent(jwtEmail)}`, { cache: 'no-store' });
       if (Array.isArray(customers) && customers.length > 0 && customers[0].id) {
         return customers[0];
       }
@@ -58,7 +58,7 @@ export const getAuthenticatedCustomer = cache(async () => {
   // 3. Absolute fallback: If WC API fails completely (e.g. user is Admin/Subscriber without a WC profile),
   // we query WP Core directly and construct a compatible customer object.
   try {
-    const me = await fetchAuthenticated("wp-json/wp/v2/users/me?context=edit");
+    const me = await fetchAuthenticated("wp-json/wp/v2/users/me?context=edit", { cache: 'no-store' });
     if (me && me.id) {
        return {
          id: me.id,

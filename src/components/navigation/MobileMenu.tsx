@@ -5,6 +5,9 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useUIStore } from "@/store/ui-store";
 import { cn } from "@/lib/utils";
 import { createUrl } from "@/lib/navigation";
+import { useScrollLock } from "@/hooks/useScrollLock";
+import { useAuthState } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 
 const NAV_LINKS = [
   { label: "Collections", href: "/collections" },
@@ -21,6 +24,16 @@ export function MobileMenu() {
   const { isMobileMenuOpen, setMobileMenuOpen } = useUIStore();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { isAuthenticated } = useAuthState();
+  const { logout } = useAuth();
+  
+  useScrollLock(isMobileMenuOpen);
+
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await logout();
+    setMobileMenuOpen(false);
+  };
 
   return (
     <>
@@ -65,6 +78,16 @@ export function MobileMenu() {
               </Link>
             );
           })}
+          
+          {isAuthenticated && (
+            <button
+              onClick={handleLogout}
+              className="text-2xl font-serif transition-colors text-brand-text/60 hover:text-brand-text text-left"
+              style={{ transitionDelay: isMobileMenuOpen ? `${NAV_LINKS.length * 50}ms` : '0ms' }}
+            >
+              Logout
+            </button>
+          )}
         </nav>
         
         <div className="mt-auto">

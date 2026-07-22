@@ -60,7 +60,7 @@ export function useAuth() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
@@ -68,14 +68,8 @@ export function useAuth() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Registration failed");
 
-      // Hybrid Wishlist Sync
-      await WishlistService.syncOnLogin();
-      const wishlistStore = useWishlistStore.getState();
-      useWishlistStore.setState({ isAuthenticated: true });
-      wishlistStore.reset();
-      await wishlistStore.initialize();
-
-      window.location.href = "/account";
+      // Redirect to verification page
+      router.push("/register/verify");
       return true;
     } catch (err: any) {
       console.error("[useAuth] Registration error caught:", err);
@@ -85,8 +79,59 @@ export function useAuth() {
       } else if (msg.includes("email") || msg.includes("invalid")) {
         setError("Please enter a valid email address.");
       } else {
-        setError("Something went wrong. Please try again later.");
+        setError(err.message || "Something went wrong. Please try again later.");
       }
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifyOtp = async (otp: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ otp }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Verification failed");
+
+      // Hybrid Wishlist Sync after successful verification & login
+      if (data.loggedIn) {
+        await WishlistService.syncOnLogin();
+        const wishlistStore = useWishlistStore.getState();
+        useWishlistStore.setState({ isAuthenticated: true });
+        wishlistStore.reset();
+        await wishlistStore.initialize();
+      }
+
+      window.location.href = "/account";
+      return true;
+    } catch (err: any) {
+      console.error("[useAuth] OTP verification error caught:", err);
+      setError(err.message || "Invalid OTP. Please try again.");
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resendOtp = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/auth/resend-otp", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to resend OTP");
+      return true;
+    } catch (err: any) {
+      console.error("[useAuth] Resend OTP error caught:", err);
+      setError(err.message || "Failed to resend OTP. Please try again.");
       return false;
     } finally {
       setIsLoading(false);
@@ -163,6 +208,8 @@ export function useAuth() {
     logout,
     forgotPassword,
     resetPassword,
+    verifyOtp,
+    resendOtp,
     isLoading,
     error,
     clearError,

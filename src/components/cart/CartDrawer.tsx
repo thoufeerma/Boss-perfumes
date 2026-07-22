@@ -3,6 +3,7 @@
 import { useUIStore } from "@/store/ui-store";
 import { useCartContext } from "@/components/cart/CartProvider";
 import { useCart } from "@/hooks/useCart";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { cn, formatPrice } from "@/lib/utils";
 import { X, Minus, Plus } from "lucide-react";
 import Image from "next/image";
@@ -12,6 +13,8 @@ export function CartDrawer() {
   const { isCartOpen, setCartOpen } = useUIStore();
   const { cart, cartCount } = useCartContext();
   const { remove, update, isUpdating } = useCart();
+  
+  useScrollLock(isCartOpen);
 
   return (
     <>
