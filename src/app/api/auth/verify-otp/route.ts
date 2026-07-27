@@ -88,6 +88,57 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: wcRes.message || "Failed to create account in WooCommerce" }, { status: 400 });
     }
 
+    // --- Automatic Guest Order Claiming ---
+    try {
+      const eligibleStatuses = ['pending', 'processing', 'completed', 'on-hold', 'cancelled', 'refunded', 'failed'];
+      // Fetch guest orders. Using `search` as an initial filter, but we will strictly verify billing email.
+      const guestOrders = await fetchWC("orders", { 
+        params: { 
+          customer: "0",
+          search: state.email,
+          per_page: "100" 
+        } 
+      });
+
+      if (Array.isArray(guestOrders) && guestOrders.length > 0) {
+        for (const order of guestOrders) {
+          try {
+            // 1. Check idempotency: order must belong to a guest
+            if (order.customer_id !== 0) {
+              continue;
+            }
+
+            // 2. Strict exact match on billing email
+            if (!order.billing?.email || order.billing.email.toLowerCase() !== state.email.toLowerCase()) {
+              continue;
+            }
+
+            // 3. Check eligible status
+            if (!eligibleStatuses.includes(order.status)) {
+              continue;
+            }
+
+            // 4. Associate the order
+            const updateRes = await fetchWC(`orders/${order.id}`, {
+              method: "PUT",
+              body: JSON.stringify({ customer_id: wcRes.id })
+            });
+
+            if (!updateRes || updateRes.code) {
+              console.error(`[Guest Order Claim] Failed to associate Order #${order.id}. Reason:`, updateRes);
+            } else {
+              console.log(`[Guest Order Claim] Successfully associated Order #${order.id} with Customer #${wcRes.id}`);
+            }
+          } catch (orderErr) {
+            console.error(`[Guest Order Claim] Exception associating Order #${order.id}:`, orderErr);
+          }
+        }
+      }
+    } catch (claimErr) {
+      console.error("[Guest Order Claim] Global exception during order claiming:", claimErr);
+    }
+    // ----------------------------------------
+
     // 3. Authenticate User (JWT Login)
     const authUrl = process.env.JWT_AUTH_URL;
     let loggedIn = false;
