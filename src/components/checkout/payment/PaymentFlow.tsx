@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MerchantDisclosure } from "./MerchantDisclosure";
 import { useCustomerStore } from "@/store/customer-store";
+import { useCartContext } from "@/components/cart/CartProvider";
+import { PaymentMethodSelector } from "./PaymentMethodSelector";
 
 function PaymentFlowSkeleton() {
   return (
@@ -58,8 +60,12 @@ const normalizeUAEPhone = (phone: string) => {
 
 export function PaymentFlow() {
   const { profile, isLoading, fetchProfile, updateProfile } = useCustomerStore();
+  const { cart } = useCartContext();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("checkoutcom");
+  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
   
   const [form, setForm] = useState({
     email: "",
@@ -143,12 +149,21 @@ export function PaymentFlow() {
       const response = await fetch("/api/payment/create-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ billing, shipping }),
+        body: JSON.stringify({ 
+          billing, 
+          shipping,
+          paymentMethod: selectedPaymentMethod,
+          existingOrderId: createdOrderId
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.orderId) {
+          // If order was created but session failed, save the orderId so we don't duplicate on retry
+          setCreatedOrderId(data.orderId);
+        }
         throw new Error(data.message || data.error || "Failed to initiate payment");
       }
 
@@ -159,7 +174,7 @@ export function PaymentFlow() {
       }
 
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred.");
+      setError(err.message || "An unexpected error occurred. You can try selecting a different payment method.");
       setIsProcessing(false);
     }
   };
@@ -206,8 +221,12 @@ export function PaymentFlow() {
       </section>
 
       <section>
-        <h2 className="text-sm font-medium tracking-widest uppercase text-brand-text mb-6">Payment</h2>
-        <div className="bg-brand-surface border border-brand-border p-6 text-center text-brand-text-muted text-sm mb-6">
+        <PaymentMethodSelector 
+          cartData={cart} 
+          selectedMethod={selectedPaymentMethod} 
+          onSelect={setSelectedPaymentMethod} 
+        />
+        <div className="bg-brand-surface border border-brand-border p-6 text-center text-brand-text-muted text-sm mb-6 mt-6">
           You will be redirected securely to complete your payment.
         </div>
         <MerchantDisclosure />

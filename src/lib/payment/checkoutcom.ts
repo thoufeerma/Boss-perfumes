@@ -115,7 +115,7 @@ export class CheckoutComProvider implements PaymentProvider {
     return hash === signature;
   }
 
-  async handleWebhookEvent(payload: any): Promise<{ orderId: number; status: "approved" | "declined" | "captured" | "refunded" | "voided" | "unknown", transactionId?: string, provider?: string } | null> {
+  async handleWebhookEvent(payload: any): Promise<{ orderId: number; status: "pending" | "authorized" | "processing" | "completed" | "cancelled" | "failed" | "refunded", transactionId?: string, provider?: string } | null> {
     if (!payload || !payload.type || !payload.data) {
       return null;
     }
@@ -127,23 +127,21 @@ export class CheckoutComProvider implements PaymentProvider {
     const orderId = parseInt(reference, 10);
     if (isNaN(orderId)) return null;
 
-    let status: "approved" | "declined" | "captured" | "refunded" | "voided" | "unknown" = "unknown";
+    let status: "pending" | "authorized" | "processing" | "completed" | "cancelled" | "failed" | "refunded" = "pending";
 
     switch (eventType) {
       case "payment_approved":
-        status = "approved";
+        status = "authorized";
         break;
       case "payment_captured":
-        status = "captured";
+        status = "completed";
         break;
       case "payment_declined":
-        status = "declined";
+      case "payment_voided":
+        status = "failed";
         break;
       case "payment_refunded":
         status = "refunded";
-        break;
-      case "payment_voided":
-        status = "voided";
         break;
       default:
         return null;
@@ -152,5 +150,10 @@ export class CheckoutComProvider implements PaymentProvider {
     const transactionId = payload.data.id || payload.data.action_id;
 
     return { orderId, status, transactionId, provider: "Checkout.com" };
+  }
+
+  isEligible(cartData: any): { eligible: boolean; reason?: string } {
+    if (!cartData) return { eligible: false, reason: "Cart data missing" };
+    return { eligible: true };
   }
 }

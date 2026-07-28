@@ -8,6 +8,7 @@ import { cn, formatPrice } from "@/lib/utils";
 import { X, Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { TabbyPromo } from "@/components/payment/TabbyPromo";
 
 export function CartDrawer() {
   const { isCartOpen, setCartOpen } = useUIStore();
@@ -136,6 +137,19 @@ export function CartDrawer() {
                 {formatPrice(cart.totals.total_price, cart.totals.currency_code, 10 ** (cart.totals.currency_minor_unit || 2))}
               </span>
             </div>
+            
+            {(() => {
+              const totalPrice = parseFloat(cart.totals.total_price || "0") / (10 ** (cart.totals.currency_minor_unit || 2));
+              if (totalPrice >= 10 && totalPrice <= 5000) {
+                return (
+                  <div className="mb-4">
+                    <TabbyPromo price={totalPrice} currency={cart.totals.currency_code || "AED"} source="cart" />
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
             <p className="text-brand-text-muted text-xs mb-6 text-center">Shipping & taxes calculated at checkout.</p>
             <Link
               href="/checkout"

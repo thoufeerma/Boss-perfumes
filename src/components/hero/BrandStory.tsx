@@ -30,14 +30,24 @@ export function BrandStory() {
               Our master perfumers blend traditional techniques with contemporary innovation, resulting in olfactory masterpieces that transcend time and trends, becoming an intimate part of your personal narrative.
             </p>
           </div>
-          <Link
-            href="/contact"
-            className="group inline-flex items-center text-sm font-medium tracking-widest uppercase text-brand-text hover:text-brand-accent transition-colors duration-300"
-          >
-            <span className="relative after:absolute after:-bottom-1 after:left-0 after:w-full after:h-[1px] after:bg-brand-text group-hover:after:bg-brand-accent transition-colors duration-300">
-              Speak with us
-            </span>
-          </Link>
+          <div className="flex items-center gap-8">
+            <Link
+              href="/contact"
+              className="group inline-flex items-center text-sm font-medium tracking-widest uppercase text-brand-text hover:text-brand-accent transition-colors duration-300"
+            >
+              <span className="relative after:absolute after:-bottom-1 after:left-0 after:w-full after:h-[1px] after:bg-brand-text group-hover:after:bg-brand-accent transition-colors duration-300">
+                Speak with us
+              </span>
+            </Link>
+            <Link
+              href="/our-boutique"
+              className="group inline-flex items-center text-sm font-medium tracking-widest uppercase text-brand-text hover:text-brand-accent transition-colors duration-300"
+            >
+              <span className="relative after:absolute after:-bottom-1 after:left-0 after:w-full after:h-[1px] after:bg-brand-text group-hover:after:bg-brand-accent transition-colors duration-300">
+                Visit our store
+              </span>
+            </Link>
+          </div>
         </div>
       </div>
     </section>

@@ -32,5 +32,10 @@ export interface PaymentProvider {
    * Parses and handles the incoming webhook payload.
    * Resolves with standardized status and metadata.
    */
-  handleWebhookEvent(payload: any): Promise<{ orderId: number; status: 'approved' | 'declined' | 'captured' | 'refunded' | 'voided' | 'unknown', transactionId?: string, provider?: string } | null>;
+  handleWebhookEvent(payload: any): Promise<{ orderId: number; status: 'pending' | 'authorized' | 'processing' | 'completed' | 'cancelled' | 'failed' | 'refunded', transactionId?: string, provider?: string } | null>;
+
+  /**
+   * Evaluates if the provider is eligible for the current cart/order.
+   */
+  isEligible(cartData: any): { eligible: boolean; reason?: string };
 }

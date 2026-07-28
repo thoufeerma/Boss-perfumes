@@ -5,6 +5,7 @@ import { type WCProduct } from "@/api/products";
 import { QuantitySelector } from "./QuantitySelector";
 import { AddToCartButton } from "./AddToCartButton";
 import { WishlistButton } from "./WishlistButton";
+import { TabbyPromo } from "@/components/payment/TabbyPromo";
 
 interface PurchaseBlockProps {
   product: WCProduct;
@@ -13,9 +14,13 @@ interface PurchaseBlockProps {
 export function PurchaseBlock({ product }: PurchaseBlockProps) {
   const [quantity, setQuantity] = useState(1);
   const isOutOfStock = product.stock_status === "outofstock";
+  const price = parseFloat(product.price || "0");
 
   return (
     <div className="pt-6 space-y-4 mb-8">
+      {price >= 10 && price <= 5000 && (
+        <TabbyPromo price={price} currency="AED" source="product" />
+      )}
       <div className="flex gap-4">
         <QuantitySelector 
           quantity={quantity} 

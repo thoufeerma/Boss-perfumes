@@ -1,10 +1,10 @@
 import Image from "next/image";
 
 const POSTS = [
-  "/images/campaign-hero.png",
-  "/images/product-placeholder.png",
-  "/images/campaign-hero.png",
-  "/images/product-placeholder.png",
+  "/insta/insta (1).webp",
+  "/insta/insta (2).webp",
+  "/insta/insta (3).webp",
+  "/insta/insta (4).webp",
 ];
 
 export function InstagramGallery() {
