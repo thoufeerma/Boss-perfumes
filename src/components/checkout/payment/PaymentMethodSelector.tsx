@@ -8,11 +8,12 @@ import Image from "next/image";
 
 interface PaymentMethodSelectorProps {
   cartData: any; // Ideally typed according to your cart state
+  billingData?: any;
   selectedMethod: string;
   onSelect: (methodId: string) => void;
 }
 
-export function PaymentMethodSelector({ cartData, selectedMethod, onSelect }: PaymentMethodSelectorProps) {
+export function PaymentMethodSelector({ cartData, billingData, selectedMethod, onSelect }: PaymentMethodSelectorProps) {
   const [availableMethods, setAvailableMethods] = useState<(PaymentMethodConfig & { eligible: boolean, reason?: string })[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -21,10 +22,19 @@ export function PaymentMethodSelector({ cartData, selectedMethod, onSelect }: Pa
     async function fetchEligibility() {
       setIsLoading(true);
       try {
+        const enhancedCartData = cartData ? {
+          ...cartData,
+          billing_address: {
+            ...cartData.billing_address,
+            email: billingData?.email || cartData.billing_address?.email,
+            phone: billingData?.phone || cartData.billing_address?.phone,
+          }
+        } : cartData;
+
         const res = await fetch("/api/payment/eligibility", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cartData })
+          body: JSON.stringify({ cartData: enhancedCartData })
         });
         if (!res.ok) throw new Error("API failed");
         
@@ -47,9 +57,12 @@ export function PaymentMethodSelector({ cartData, selectedMethod, onSelect }: Pa
     }
     
     if (cartData) {
-      fetchEligibility();
+      const timer = setTimeout(() => {
+        fetchEligibility();
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  }, [cartData]);
+  }, [cartData, billingData?.email, billingData?.phone]);
 
   if (availableMethods.length === 0) {
     return <div className="text-red-500 text-sm">No payment methods available for this order.</div>;

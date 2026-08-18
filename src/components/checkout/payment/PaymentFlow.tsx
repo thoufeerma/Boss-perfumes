@@ -223,6 +223,7 @@ export function PaymentFlow() {
       <section>
         <PaymentMethodSelector 
           cartData={cart} 
+          billingData={form}
           selectedMethod={selectedPaymentMethod} 
           onSelect={setSelectedPaymentMethod} 
         />
