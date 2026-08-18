@@ -21,7 +21,7 @@ export const PAYMENT_METHODS: PaymentMethodConfig[] = [
   },
   {
     id: "tabby",
-    name: "Buy Now, Pay Later",
+    name: "Pay later with Tabby",
     provider: "Tabby",
     enabled: paymentConfig.tabby.enabled,
     sortOrder: 2,

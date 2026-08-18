@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useId } from "react";
 import Script from "next/script";
 
 // In a real app, this should come from a context or config, but for simplicity
@@ -25,22 +25,25 @@ export function TabbyPromo({
   publicKey = process.env.NEXT_PUBLIC_TABBY_PUBLIC_KEY || "",
   scriptUrl = process.env.NEXT_PUBLIC_TABBY_PROMO_SCRIPT_URL || "https://checkout.tabby.ai/tabby-promo.js"
 }: TabbyPromoProps) {
-  const containerId = useRef(`TabbyPromo-${Math.random().toString(36).substr(2, 9)}`);
+  const reactId = useId();
+  // Sanitize the ID to be a valid CSS selector if needed (remove colons)
+  const containerId = `TabbyPromo-${reactId.replace(/:/g, '')}`;
   
-  // We need to initialize the widget once the script is loaded
   const initTabby = () => {
     // @ts-ignore - TabbyPromo is attached to window by the external script
     if (typeof window !== "undefined" && window.TabbyPromo) {
       try {
+        const decimalPlaces = ['KWD', 'BHD', 'OMR'].includes(currency.toUpperCase()) ? 3 : 2;
+
         // @ts-ignore
         new window.TabbyPromo({
-          selector: `#${containerId.current}`,
+          selector: `#${containerId}`,
           currency: currency,
-          price: price.toFixed(2),
-          installmentsCount: 4,
+          price: price.toFixed(decimalPlaces),
           lang: lang,
           source: source,
-          publicKey: publicKey
+          publicKey: publicKey,
+          merchantCode: process.env.NEXT_PUBLIC_TABBY_MERCHANT_CODE || ""
         });
       } catch (error) {
         console.error("TabbyPromo initialization failed:", error);
@@ -65,10 +68,10 @@ export function TabbyPromo({
       */}
       <Script 
         src={scriptUrl}
-        strategy="lazyOnload"
+        strategy="afterInteractive"
         onLoad={initTabby}
       />
-      <div id={containerId.current} className="tabby-promo-container min-h-[40px]" />
+      <div id={containerId} className="tabby-promo-container min-h-[40px]" />
     </div>
   );
 }

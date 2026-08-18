@@ -1,0 +1,42 @@
+<html>
+  <body>
+    <!-- Product / Cart page: near the price or the "Add to cart" button -->
+    <div id="TabbyPromo"></div>
+
+    <!-- Checkout page: under the Tabby payment method option -->
+    <div id="TabbyCard"></div>
+
+    <script src="https://checkout.tabby.ai/tabby-promo.js"></script>
+    <script src="https://checkout.tabby.ai/tabby-card.js"></script>
+    <script>
+      var PUBLIC_KEY = 'pk_...';                 // required, your PUBLIC key — never expose sk_ keys
+      var MERCHANT_CODE = 'your_merchant_code';  // required, based on your store currency
+
+      // Product & Cart pages
+      new TabbyPromo({
+        selector: '#TabbyPromo',  // required
+        currency: 'AED',          // required, 'AED' or 'SAR' or 'KWD', uppercase, no spaces
+        price: '2000.00',         // required, 2 decimal places for AED, SAR; 3 for KWD.
+                                  // Re-init when the price changes (e.g. variant selectors)
+        lang: 'en',               // optional, 'en' or 'ar'
+        source: 'product',        // optional, 'product' or 'cart'
+        shouldInheritBg: false,   // optional, true to inherit your page background;
+                                  // then text colors can be overridden via CSS variables
+                                  // --snippetTextColor and --snippetLinkTextColor
+        publicKey: PUBLIC_KEY,
+        merchantCode: MERCHANT_CODE
+      });
+
+      // Checkout page
+      new TabbyCard({
+        selector: '#TabbyCard',
+        currency: 'AED',
+        price: '2000.00',
+        lang: 'en',
+        shouldInheritBg: false,
+        publicKey: PUBLIC_KEY,
+        merchantCode: MERCHANT_CODE
+      });
+    </script>
+  </body>
+</html>

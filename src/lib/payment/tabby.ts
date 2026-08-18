@@ -15,29 +15,61 @@ export class TabbyProvider implements PaymentProvider {
     this.apiUrl = paymentConfig.tabby.apiUrl || "https://api.tabby.ai/api/v2";
   }
 
-  isEligible(cartData: any): { eligible: boolean; reason?: string } {
+  async isEligible(cartData: any): Promise<{ eligible: boolean; reason?: string }> {
     if (!cartData) return { eligible: false, reason: "Cart data missing" };
     
-    const minAmount = paymentConfig.tabby.minAmount || 10;
-    const maxAmount = paymentConfig.tabby.maxAmount || 5000;
-    const supportedCurrencies = paymentConfig.tabby.supportedCurrencies || ["AED", "SAR", "KWD", "BHD", "QAR", "EGP"];
+    // Fail-safe approach: if keys are missing or API fails, default to true
+    if (!this.secretKey) return { eligible: true };
 
-    const total = parseFloat(cartData.totals?.total_price || "0") / (10 ** (cartData.totals?.currency_minor_unit || 2));
+    const amount = (parseFloat(cartData.totals?.total_price || "0") / (10 ** (cartData.totals?.currency_minor_unit || 2))).toFixed(2);
     const currency = cartData.totals?.currency_code || "AED";
 
-    if (!supportedCurrencies.includes(currency)) {
-      return { eligible: false, reason: `Currency ${currency} not supported` };
-    }
-    
-    if (total < minAmount) {
-      return { eligible: false, reason: `Minimum order amount of ${minAmount} ${currency} not met` };
-    }
+    const payload = {
+      payment: {
+        amount,
+        currency,
+        buyer: {
+          email: cartData.billing_address?.email || "guest@example.com",
+          phone: cartData.billing_address?.phone || "+971500000000"
+        }
+      },
+      lang: "en",
+      merchant_code: this.merchantCode
+    };
 
-    if (total > maxAmount) {
-      return { eligible: false, reason: `Maximum order amount of ${maxAmount} ${currency} exceeded` };
-    }
+    try {
+      const res = await fetch(`${this.apiUrl}/checkout`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${this.secretKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
 
-    return { eligible: true };
+      if (!res.ok) {
+        return { eligible: true }; // Fail-safe
+      }
+
+      const data = await res.json();
+      
+      if (data.status === "rejected") {
+        const reason = data.configuration?.products?.installments?.rejection_reason;
+        let uiMessage = "Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order.";
+        
+        if (reason === "order_amount_too_high") {
+          uiMessage = "This purchase is above your current spending limit with Tabby, try a smaller cart or use another payment method";
+        } else if (reason === "order_amount_too_low") {
+          uiMessage = "The purchase amount is below the minimum amount required to use Tabby, try adding more items or use another payment method";
+        }
+        
+        return { eligible: false, reason: uiMessage };
+      }
+      
+      return { eligible: true };
+    } catch (e) {
+      return { eligible: true }; // Fail-safe
+    }
   }
 
   async createSession(request: PaymentSessionRequest): Promise<PaymentSessionResponse> {
@@ -46,6 +78,9 @@ export class TabbyProvider implements PaymentProvider {
     if (!this.secretKey || !this.publicKey) {
       throw new Error("Tabby credentials are not configured.");
     }
+
+    const buyerHistory = request.buyerHistory || { registered_since: new Date().toISOString() };
+    const orderHistory = request.orderHistory || [];
 
     const payload = {
       payment: {
@@ -57,20 +92,39 @@ export class TabbyProvider implements PaymentProvider {
           name: request.customerName || "",
           phone: request.billing?.phone || "",
         },
+        shipping_address: {
+          city: request.shipping?.city || request.billing?.city || "Unknown",
+          address: request.shipping?.address_1 || request.billing?.address_1 || "Unknown",
+          zip: request.shipping?.postcode || request.billing?.postcode || "00000",
+        },
         order: {
           reference_id: request.reference || request.orderId.toString(),
-          items: [], // Map items here if necessary
+          items: request.items ? request.items.map(item => ({
+            reference_id: item.sku || item.product_id?.toString() || item.id?.toString(),
+            title: item.name || item.title || "Product",
+            quantity: item.quantity || 1,
+            unit_price: item.prices?.price 
+              ? (parseFloat(item.prices.price) / (10 ** (item.prices.currency_minor_unit || 2))).toFixed(2)
+              : (parseFloat(item.price || "0")).toFixed(2),
+            image_url: item.image || item.images?.[0]?.src || "",
+            product_url: item.permalink || "",
+            category: item.categories?.[0]?.name || item.category || "Perfumes",
+            brand: "Boss Perfumes",
+          })) : [],
         },
-        buyer_history: {
-          registered_since: new Date().toISOString()
-        }
+        buyer_history: buyerHistory,
+        order_history: orderHistory,
       },
       lang: "en",
       merchant_code: this.merchantCode,
       merchant_urls: {
         success: request.successUrl || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout/success`,
-        cancel: request.cancelUrl || request.failureUrl || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout/failed`,
-        failure: request.failureUrl || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout/failed`
+        cancel: request.cancelUrl 
+            ? (request.cancelUrl.includes('?') ? `${request.cancelUrl}&error=tabby_cancel` : `${request.cancelUrl}?error=tabby_cancel`)
+            : `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout?error=tabby_cancel`,
+        failure: request.failureUrl 
+            ? (request.failureUrl.includes('?') ? `${request.failureUrl}&error=tabby_failed` : `${request.failureUrl}?error=tabby_failed`)
+            : `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout?error=tabby_failed`
       }
     };
 
@@ -81,6 +135,8 @@ export class TabbyProvider implements PaymentProvider {
         // Wait, Tabby docs say: "Include your secret_key in the request header...". Let's use secretKey.
       },
     });
+
+    console.log("TABBY SESSION PAYLOAD:", JSON.stringify(payload, null, 2));
 
     // We'll update headers to use secretKey.
     const res = await fetch(`${this.apiUrl}/checkout`, {
@@ -95,7 +151,17 @@ export class TabbyProvider implements PaymentProvider {
     if (!res.ok) {
       const errorText = await res.text();
       console.error("Tabby Raw Error:", errorText);
-      throw new Error(`Failed to create Tabby session: ${res.statusText}`);
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (e) {}
+
+      if (errorData?.rejection_reason === "not_available") {
+        throw new Error("Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order. / نأسف، تابي غير قادرة على الموافقة على هذه العملية. الرجاء استخدام طريقة دفع أخرى.");
+      } else if (errorData?.rejection_reason === "order_amount_too_high") {
+        throw new Error("This purchase is above your current spending limit with Tabby, try a smaller cart or use another payment method / قيمة الطلب تفوق الحد الأقصى المسموح به حاليًا مع تابي. يُرجى تخفيض قيمة السلة أو استخدام وسيلة دفع أخرى.");
+      }
+      throw new Error(`Failed to create Tabby session: ${errorData?.error || res.statusText}`);
     }
 
     const data = await res.json();
@@ -108,53 +174,107 @@ export class TabbyProvider implements PaymentProvider {
   }
 
   verifyWebhook(headers: Headers, rawBody: string): boolean {
-    const signature = headers.get("x-tabby-signature");
-    if (!signature) return false;
+    const secret = headers.get("x-tabby-webhook-secret");
+    if (!secret) return false;
 
-    const webhookSecret = paymentConfig.tabby.webhookSecret;
-    if (!webhookSecret) {
-      console.warn("TABBY_WEBHOOK_SECRET is not set. Skipping signature verification.");
-      return true;
+    const expectedSecret = process.env.TABBY_WEBHOOK_SECRET;
+    if (!expectedSecret) {
+      console.warn("TABBY_WEBHOOK_SECRET is not set.");
+      return false;
     }
 
-    const hash = crypto
-      .createHmac("sha256", webhookSecret)
-      .update(rawBody, "utf8")
-      .digest("hex");
-
-    return hash === signature;
+    return secret === expectedSecret;
   }
 
-  async handleWebhookEvent(payload: any): Promise<{ orderId: number; status: "pending" | "authorized" | "processing" | "completed" | "cancelled" | "failed" | "refunded", transactionId?: string, provider?: string } | null> {
+  async handleWebhookEvent(payload: any): Promise<{ orderId: number; status: "pending" | "authorized" | "processing" | "completed" | "cancelled" | "failed" | "refunded", transactionId?: string, provider?: string, metadata?: Record<string, any> } | null> {
     if (!payload || !payload.id || !payload.status) {
       return null;
     }
 
-    const eventStatus = payload.status;
+    const eventStatus = payload.status.toLowerCase();
     const reference = payload.order?.reference_id;
     if (!reference) return null;
 
     const orderId = parseInt(reference, 10);
     if (isNaN(orderId)) return null;
 
+    const paymentId = payload.id;
     let status: "pending" | "authorized" | "processing" | "completed" | "cancelled" | "failed" | "refunded" = "pending";
+    let captureId: string | undefined = undefined;
 
-    switch (eventStatus.toUpperCase()) {
-      case "AUTHORIZED":
-        status = "authorized";
-        break;
-      case "CLOSED":
-        status = "completed";
-        break;
-      case "REJECTED":
-      case "EXPIRED":
-      case "FAILED":
-        status = "failed";
-        break;
-      default:
+    if (eventStatus === "authorized") {
+      try {
+        console.log(`[Tabby Webhook] Authorized event for payment ${paymentId}. Retrieving payment...`);
+        const retrieveRes = await fetch(`${this.apiUrl}/payments/${paymentId}`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${this.secretKey}`,
+          },
+        });
+
+        if (!retrieveRes.ok) {
+          console.error(`[Tabby Webhook] Failed to retrieve payment ${paymentId}`);
+          return null;
+        }
+
+        const retrieveData = await retrieveRes.json();
+        
+        if (retrieveData.status === "AUTHORIZED") {
+          console.log(`[Tabby Webhook] Payment ${paymentId} is AUTHORIZED. Initiating capture...`);
+          const captureRes = await fetch(`${this.apiUrl}/payments/${paymentId}/captures`, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${this.secretKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              amount: retrieveData.amount,
+              reference_id: `capture_${orderId}_${paymentId}` // Idempotent reference
+            })
+          });
+
+          if (!captureRes.ok) {
+             const errText = await captureRes.text();
+             console.error(`[Tabby Webhook] Capture failed for payment ${paymentId}:`, errText);
+             return null;
+          }
+
+          const captureData = await captureRes.json();
+          if (captureData.status === "CLOSED" || retrieveData.status === "CLOSED") { // Capture sometimes updates the main payment status
+             console.log(`[Tabby Webhook] Capture successful for ${paymentId}.`);
+             status = "processing";
+             captureId = captureData.id;
+          } else {
+             console.warn(`[Tabby Webhook] Capture returned unexpected status for ${paymentId}:`, captureData.status);
+             return null;
+          }
+        } else if (retrieveData.status === "CLOSED") {
+           console.log(`[Tabby Webhook] Payment ${paymentId} already CLOSED.`);
+           status = "processing";
+        } else {
+           console.log(`[Tabby Webhook] Payment ${paymentId} status is ${retrieveData.status}, not capturing.`);
+           return null;
+        }
+      } catch (err) {
+        console.error(`[Tabby Webhook] Error during retrieve/capture flow for ${paymentId}:`, err);
         return null;
+      }
+    } else if (eventStatus === "closed") {
+      status = "processing";
+    } else if (eventStatus === "rejected" || eventStatus === "expired" || eventStatus === "failed") {
+      status = "failed";
+    } else {
+      return null; // created, etc
     }
 
-    return { orderId, status, transactionId: payload.id, provider: "Tabby" };
+    const metadata: Record<string, any> = {
+      _tabby_payment_id: paymentId,
+      _tabby_status: eventStatus,
+    };
+    if (captureId) {
+      metadata._tabby_capture_id = captureId;
+    }
+
+    return { orderId, status, transactionId: paymentId, provider: "Tabby", metadata };
   }
 }

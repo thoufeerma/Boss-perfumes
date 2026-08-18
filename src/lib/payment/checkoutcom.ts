@@ -152,7 +152,7 @@ export class CheckoutComProvider implements PaymentProvider {
     return { orderId, status, transactionId, provider: "Checkout.com" };
   }
 
-  isEligible(cartData: any): { eligible: boolean; reason?: string } {
+  async isEligible(cartData: any): Promise<{ eligible: boolean; reason?: string }> {
     if (!cartData) return { eligible: false, reason: "Cart data missing" };
     return { eligible: true };
   }

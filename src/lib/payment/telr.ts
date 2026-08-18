@@ -13,7 +13,7 @@ export class TelrProvider implements PaymentProvider {
     this.gatewayUrl = paymentConfig.telr.gatewayUrl || "https://secure.telr.com/gateway/order.json";
   }
 
-  isEligible(cartData: any): { eligible: boolean; reason?: string } {
+  async isEligible(cartData: any): Promise<{ eligible: boolean; reason?: string }> {
     if (!cartData) return { eligible: false, reason: "Cart data missing" };
     return { eligible: true };
   }

@@ -13,8 +13,6 @@ export const paymentConfig = {
     apiUrl: process.env.NEXT_PUBLIC_TABBY_API_URL || process.env.TABBY_API_URL || "https://api.tabby.ai/api/v2",
     webhookSecret: process.env.TABBY_WEBHOOK_SECRET,
     merchantCode: process.env.NEXT_PUBLIC_TABBY_MERCHANT_CODE || process.env.TABBY_MERCHANT_CODE,
-    minAmount: process.env.NEXT_PUBLIC_TABBY_MIN_AMOUNT ? parseFloat(process.env.NEXT_PUBLIC_TABBY_MIN_AMOUNT) : (process.env.TABBY_MIN_AMOUNT ? parseFloat(process.env.TABBY_MIN_AMOUNT) : 10),
-    maxAmount: process.env.NEXT_PUBLIC_TABBY_MAX_AMOUNT ? parseFloat(process.env.NEXT_PUBLIC_TABBY_MAX_AMOUNT) : (process.env.TABBY_MAX_AMOUNT ? parseFloat(process.env.TABBY_MAX_AMOUNT) : 5000),
     supportedCurrencies: process.env.NEXT_PUBLIC_TABBY_CURRENCIES ? process.env.NEXT_PUBLIC_TABBY_CURRENCIES.split(",") : (process.env.TABBY_CURRENCIES ? process.env.TABBY_CURRENCIES.split(",") : ["AED", "SAR", "KWD", "BHD", "QAR", "EGP"]),
   },
 

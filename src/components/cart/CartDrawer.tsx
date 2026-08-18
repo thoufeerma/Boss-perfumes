@@ -140,14 +140,11 @@ export function CartDrawer() {
             
             {(() => {
               const totalPrice = parseFloat(cart.totals.total_price || "0") / (10 ** (cart.totals.currency_minor_unit || 2));
-              if (totalPrice >= 10 && totalPrice <= 5000) {
-                return (
-                  <div className="mb-4">
-                    <TabbyPromo price={totalPrice} currency={cart.totals.currency_code || "AED"} source="cart" />
-                  </div>
-                );
-              }
-              return null;
+              return (
+                <div className="mb-4">
+                  <TabbyPromo price={totalPrice} currency={cart.totals.currency_code || "AED"} source="cart" />
+                </div>
+              );
             })()}
 
             <p className="text-brand-text-muted text-xs mb-6 text-center">Shipping & taxes calculated at checkout.</p>

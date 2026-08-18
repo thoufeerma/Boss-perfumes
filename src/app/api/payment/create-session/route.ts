@@ -7,6 +7,7 @@ import { getCart } from "@/api/cart";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
+  let orderId: number | null = null;
   try {
     const body = await request.json();
     const { billing, shipping, paymentMethod, existingOrderId } = body;
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
     const methods = getEnabledPaymentMethods();
     const selectedMethod = methods.find(m => m.id === paymentMethod) || methods[0] || { id: "checkoutcom", name: "Checkout.com", provider: "Checkout.com" };
 
-    let orderId = existingOrderId;
+    orderId = existingOrderId;
 
     if (!orderId) {
       // 3. Create Pending WooCommerce Order directly via Server-to-Server REST API
@@ -98,18 +99,91 @@ export async function POST(request: NextRequest) {
     const minorUnitDivisor = 10 ** (cartData.totals.currency_minor_unit || 2);
     const standardAmount = amountInMinorUnits / minorUnitDivisor;
 
+    let buyerHistory: any = {
+      registered_since: new Date().toISOString(),
+      loyalty_level: 0
+    };
+    let orderHistory: any[] = [];
+
+    if (billing.email) {
+      try {
+        const customerOrders = await fetchWC("orders", { params: { email: billing.email } });
+        if (customerOrders && Array.isArray(customerOrders)) {
+          const pastOrders = customerOrders.filter((o: any) => o.id !== orderId);
+          if (pastOrders.length > 0) {
+            pastOrders.sort((a: any, b: any) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime());
+            
+            let registeredSince = new Date(pastOrders[pastOrders.length - 1].date_created).toISOString();
+            if (customerId && customerId > 0) {
+              const customer = await fetchWC(`customers/${customerId}`);
+              if (customer && customer.date_created) {
+                registeredSince = new Date(customer.date_created).toISOString();
+              }
+            }
+
+            buyerHistory = {
+              registered_since: registeredSince,
+              loyalty_level: pastOrders.filter((o: any) => o.status === 'completed' || o.status === 'processing').length,
+            };
+
+            const mapWcStatusToTabby = (status: string) => {
+              switch (status) {
+                case 'pending': return 'new';
+                case 'processing': return 'processing';
+                case 'completed': return 'complete';
+                case 'refunded': return 'refunded';
+                case 'cancelled': return 'canceled';
+                case 'failed': return 'unknown'; // failed is not in Tabby enum, use unknown
+                default: return 'unknown';
+              }
+            };
+
+            const historyToSend = pastOrders.slice(0, 10);
+            for (const order of historyToSend) {
+              orderHistory.push({
+                purchased_at: new Date(order.date_created).toISOString(),
+                amount: (parseFloat(order.total || "0")).toFixed(2),
+                payment_method: (order.payment_method?.toLowerCase().includes('cod') || order.payment_method?.toLowerCase().includes('cash')) ? 'cod' : 'card',
+                status: mapWcStatusToTabby(order.status),
+                buyer: { phone: order.billing?.phone || "000000000", email: order.billing?.email || "guest@example.com", name: `${order.billing?.first_name || ""} ${order.billing?.last_name || ""}`.trim() || "Customer" },
+                shipping_address: {
+                  city: order.shipping?.city || order.billing?.city || "Unknown",
+                  address: order.shipping?.address_1 || order.billing?.address_1 || "Unknown",
+                  zip: order.shipping?.postcode || order.billing?.postcode || "00000",
+                },
+                items: order.line_items?.map((item: any) => ({
+                  reference_id: item.sku || item.product_id?.toString() || item.id?.toString(),
+                  title: item.name || "Product",
+                  quantity: item.quantity || 1,
+                  unit_price: (parseFloat(item.price || "0")).toFixed(2),
+                  category: "Store",
+                })) || []
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to fetch WooCommerce order history for buyer", err);
+      }
+    }
+
     // 4. PRESERVE the cart token until payment succeeds.
     // Do NOT delete it here.
 
     // 5. Initialize Payment Session
     const provider = getPaymentProvider(selectedMethod.id);
     const session = await provider.createSession({
-      orderId: orderId,
+      orderId: orderId as number,
       amount: standardAmount,
       currency: cartData.totals.currency_code || "AED",
       customerEmail: billing.email || "",
       customerName: `${billing.first_name || ""} ${billing.last_name || ""}`.trim(),
       billing: billing,
+      shipping: shipping || billing,
+      items: cartData.items || [],
+      customerId: customerId,
+      buyerHistory: buyerHistory,
+      orderHistory: orderHistory,
       cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout`,
     });
 
@@ -117,6 +191,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error("Create session error:", error);
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
+    // Note: orderId might not be defined if it failed before creation, but let's try to pass it if we can.
+    // However, `orderId` is not in the catch scope if it was declared inside `try` but it IS declared in the try scope.
+    // Wait, orderId is declared in the try block!
+    return NextResponse.json({ 
+      error: error.message || "Internal server error",
+      orderId: orderId
+    }, { status: 500 });
   }
 }

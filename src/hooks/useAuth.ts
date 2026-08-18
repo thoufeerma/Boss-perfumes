@@ -76,8 +76,10 @@ export function useAuth() {
       const msg = err.message?.toLowerCase() || "";
       if (msg.includes("exists") || msg.includes("already registered")) {
         setError("An account with this email address already exists.");
-      } else if (msg.includes("email") || msg.includes("invalid")) {
+      } else if (msg === "invalid email format") {
         setError("Please enter a valid email address.");
+      } else if (msg.includes("too many requests")) {
+        setError("Too many requests. Please try again later.");
       } else {
         setError(err.message || "Something went wrong. Please try again later.");
       }

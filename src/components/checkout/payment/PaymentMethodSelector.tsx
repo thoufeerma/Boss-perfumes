@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getEnabledPaymentMethods, PaymentMethodConfig } from "@/lib/payment/registry";
-import { getPaymentProvider } from "@/lib/payment/providerFactory";
+import { PaymentMethodConfig } from "@/lib/payment/registry";
 import { TabbyPromo } from "@/components/payment/TabbyPromo";
+import { TabbyCard } from "@/components/payment/TabbyCard";
+import Image from "next/image";
 
 interface PaymentMethodSelectorProps {
   cartData: any; // Ideally typed according to your cart state
@@ -14,28 +15,39 @@ interface PaymentMethodSelectorProps {
 export function PaymentMethodSelector({ cartData, selectedMethod, onSelect }: PaymentMethodSelectorProps) {
   const [availableMethods, setAvailableMethods] = useState<(PaymentMethodConfig & { eligible: boolean, reason?: string })[]>([]);
 
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
-    // Determine eligibility for all enabled methods
-    const enabledMethods = getEnabledPaymentMethods();
-    
-    const methodsWithEligibility = enabledMethods.map((method) => {
+    async function fetchEligibility() {
+      setIsLoading(true);
       try {
-        const provider = getPaymentProvider(method.id);
-        const check = provider.isEligible(cartData);
-        return { ...method, eligible: check.eligible, reason: check.reason };
-      } catch (e) {
-        return { ...method, eligible: false, reason: "Internal error" };
+        const res = await fetch("/api/payment/eligibility", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cartData })
+        });
+        if (!res.ok) throw new Error("API failed");
+        
+        const data = await res.json();
+        const methodsWithEligibility = data.methods || [];
+        
+        setAvailableMethods(methodsWithEligibility);
+
+        const firstEligible = methodsWithEligibility.find((m: any) => m.eligible);
+        const selectedIsEligible = methodsWithEligibility.find((m: any) => m.id === selectedMethod)?.eligible;
+        
+        if (!selectedIsEligible && firstEligible) {
+          onSelect(firstEligible.id);
+        }
+      } catch (err) {
+        console.error("Eligibility fetch failed:", err);
+      } finally {
+        setIsLoading(false);
       }
-    });
-
-    setAvailableMethods(methodsWithEligibility);
-
-    // If current selected method is not eligible, fallback to first eligible
-    const firstEligible = methodsWithEligibility.find(m => m.eligible);
-    const selectedIsEligible = methodsWithEligibility.find(m => m.id === selectedMethod)?.eligible;
+    }
     
-    if (!selectedIsEligible && firstEligible) {
-      onSelect(firstEligible.id);
+    if (cartData) {
+      fetchEligibility();
     }
   }, [cartData]);
 
@@ -84,25 +96,30 @@ export function PaymentMethodSelector({ cartData, selectedMethod, onSelect }: Pa
                 </span>
                 
                 {/* Visual Indicators/Logos could go here based on method.id */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   {method.id === "checkoutcom" && (
                     <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Visa / MC</span>
                   )}
-                  {method.id === "tabby" && (
-                    <span className="text-xs text-brand-text-muted font-bold tracking-widest uppercase bg-[#3EFFB6] text-black px-2 py-0.5 rounded-sm">Tabby</span>
-                  )}
                   {method.id === "telr" && (
                     <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Telr</span>
+                  )}
+                  {method.id === "tabby" && (
+                    <Image 
+                      src="/tabby logos/Tabby_Badge/Tabby_Badge_SVG.svg" 
+                      alt="Tabby" 
+                      width={56} 
+                      height={20} 
+                      className="object-contain" 
+                    />
                   )}
                 </div>
               </div>
 
               {method.id === "tabby" && method.eligible && cartData?.totals && (
                 <div className="mt-2 mb-1" onClick={(e) => e.stopPropagation()}>
-                  <TabbyPromo 
+                  <TabbyCard 
                     price={parseFloat(cartData.totals.total_price || "0") / (10 ** (cartData.totals.currency_minor_unit || 2))} 
                     currency={cartData.totals.currency_code || "AED"} 
-                    source="checkout" 
                   />
                 </div>
               )}

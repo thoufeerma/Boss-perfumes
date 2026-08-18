@@ -42,7 +42,7 @@ export async function processWebhook(request: NextRequest, providerId?: string) 
       return NextResponse.json({ received: true });
     }
 
-    const { orderId, status, transactionId, provider: providerName } = event;
+    const { orderId, status, transactionId, provider: providerName, metadata: providerMetadata } = event;
 
     // Fetch current order to check state and idempotency
     const currentOrder = await fetchWC(`orders/${orderId}`, { method: "GET" });
@@ -95,6 +95,13 @@ export async function processWebhook(request: NextRequest, providerId?: string) 
     if (providerName) {
       metaData.push({ key: "_payment_method_title", value: providerName });
       metaData.push({ key: "_payment_provider", value: providerName });
+    }
+    
+    // Add provider-specific metadata
+    if (providerMetadata) {
+      for (const [key, value] of Object.entries(providerMetadata)) {
+        metaData.push({ key, value });
+      }
     }
 
     // Update WooCommerce Order

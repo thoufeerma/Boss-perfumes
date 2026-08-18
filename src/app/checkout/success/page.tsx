@@ -24,30 +24,9 @@ export default async function CheckoutSuccessPage({ searchParams }: { searchPara
       if (res.ok) {
         const data = await res.json();
         if (data.status === "AUTHORIZED" || data.status === "CLOSED") {
-          const orderId = data.order?.reference_id;
-          if (orderId) {
-            // Check current order status
-            const currentOrder = await fetchWC(`orders/${orderId}`, { method: "GET" });
-            if (currentOrder && currentOrder.status === "pending") {
-               // Update order since webhook didn't catch it yet
-               await fetchWC(`orders/${orderId}`, {
-                 method: "PUT",
-                 body: JSON.stringify({
-                   status: "processing",
-                   transaction_id: paymentId
-                 })
-               });
-               
-               // Add Order Note
-               await fetchWC(`orders/${orderId}/notes`, {
-                 method: "POST",
-                 body: JSON.stringify({
-                   note: `Payment Verified via Success Redirect Fallback (Webhook Delayed/Missed).\nStatus: ${data.status}\nTransaction ID: ${paymentId}`,
-                   customer_note: false
-                 })
-               });
-            }
-          }
+           console.log(`[Success Page] Tabby payment ${paymentId} is ${data.status}. Awaiting webhook for capture and processing.`);
+        } else {
+           console.warn(`[Success Page] Tabby payment ${paymentId} has unexpected status: ${data.status}.`);
         }
       }
     } catch (e) {
