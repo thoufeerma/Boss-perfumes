@@ -167,6 +167,18 @@ export class TabbyProvider implements PaymentProvider {
     const data = await res.json();
     console.log("Tabby Success:", JSON.stringify(data, null, 2));
 
+    if (data.status === "rejected") {
+      const reason = data.configuration?.products?.installments?.rejection_reason || data.payment?.status;
+      if (reason === "not_available" || reason === "REJECTED") {
+        throw new Error("Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order. / نأسف، تابي غير قادرة على الموافقة على هذه العملية. الرجاء استخدام طريقة دفع أخرى.");
+      } else if (reason === "order_amount_too_high") {
+        throw new Error("This purchase is above your current spending limit with Tabby, try a smaller cart or use another payment method / قيمة الطلب تفوق الحد الأقصى المسموح به حاليًا مع تابي. يُرجى تخفيض قيمة السلة أو استخدام وسيلة دفع أخرى.");
+      } else if (reason === "order_amount_too_low") {
+        throw new Error("The purchase amount is below the minimum amount required to use Tabby, try adding more items or use another payment method / قيمة الطلب أقل من الحد الأدنى المسموح به حاليًا مع تابي. يُرجى زيادة قيمة السلة أو استخدام وسيلة دفع أخرى.");
+      }
+      throw new Error("Tabby rejected the payment session.");
+    }
+
     return {
       sessionId: data.payment?.id || data.id,
       redirectUrl: data.configuration?.available_products?.installments?.[0]?.web_url || data.payment?.web_url,
