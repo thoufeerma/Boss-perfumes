@@ -175,7 +175,10 @@ export class TabbyProvider implements PaymentProvider {
 
   verifyWebhook(headers: Headers, rawBody: string): boolean {
     const secret = headers.get("x-tabby-webhook-secret");
-    if (!secret) return false;
+    if (!secret) {
+      console.warn("Tabby webhook custom header missing.");
+      return false;
+    }
 
     const expectedSecret = process.env.TABBY_WEBHOOK_SECRET;
     if (!expectedSecret) {
@@ -183,7 +186,11 @@ export class TabbyProvider implements PaymentProvider {
       return false;
     }
 
-    return secret === expectedSecret;
+    // Safely remove accidental trailing spaces or quotes from Vercel environment variables
+    const cleanSecret = secret.replace(/['"]/g, '').trim();
+    const cleanExpected = expectedSecret.replace(/['"]/g, '').trim();
+
+    return cleanSecret === cleanExpected;
   }
 
   async handleWebhookEvent(payload: any): Promise<{ orderId: number; status: "pending" | "authorized" | "processing" | "completed" | "cancelled" | "failed" | "refunded", transactionId?: string, provider?: string, metadata?: Record<string, any> } | null> {
