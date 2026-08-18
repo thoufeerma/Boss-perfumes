@@ -128,13 +128,13 @@ export async function POST(request: NextRequest) {
 
             const mapWcStatusToTabby = (status: string) => {
               switch (status) {
-                case 'pending': return 'new';
-                case 'processing': return 'processing';
-                case 'completed': return 'complete';
-                case 'refunded': return 'refunded';
-                case 'cancelled': return 'canceled';
-                case 'failed': return 'unknown'; // failed is not in Tabby enum, use unknown
-                default: return 'unknown';
+                case 'pending': return 'NEW';
+                case 'processing': return 'PROCESSING';
+                case 'completed': return 'COMPLETE';
+                case 'refunded': return 'REFUNDED';
+                case 'cancelled': return 'CANCELED';
+                case 'failed': return 'FAILED';
+                default: return 'UNKNOWN';
               }
             };
 
