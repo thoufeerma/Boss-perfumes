@@ -55,12 +55,12 @@ export class TabbyProvider implements PaymentProvider {
       
       if (data.status === "rejected") {
         const reason = data.configuration?.products?.installments?.rejection_reason;
-        let uiMessage = "Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order.";
+        let uiMessage = "Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order.\nنأسف، تابي غير قادرة على الموافقة على هذه العملية. الرجاء استخدام طريقة دفع أخرى.";
         
         if (reason === "order_amount_too_high") {
-          uiMessage = "This purchase is above your current spending limit with Tabby, try a smaller cart or use another payment method";
+          uiMessage = "This purchase is above your current spending limit with Tabby, try a smaller cart or use another payment method\nقيمة الطلب تفوق الحد الأقصى المسموح به حاليًا مع تابي. يُرجى تخفيض قيمة السلة أو استخدام وسيلة دفع أخرى.";
         } else if (reason === "order_amount_too_low") {
-          uiMessage = "The purchase amount is below the minimum amount required to use Tabby, try adding more items or use another payment method";
+          uiMessage = "The purchase amount is below the minimum amount required to use Tabby, try adding more items or use another payment method\nقيمة الطلب أقل من الحد الأدنى المسموح به حاليًا مع تابي. يُرجى زيادة قيمة السلة أو استخدام وسيلة دفع أخرى.";
         }
         
         return { eligible: false, reason: uiMessage };

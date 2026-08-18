@@ -129,7 +129,7 @@ export function PaymentMethodSelector({ cartData, selectedMethod, onSelect }: Pa
               )}
               
               {!method.eligible && method.reason && (
-                <p className="text-xs text-red-500 mt-2 font-medium">{method.reason}</p>
+                <p className="text-xs text-red-500 mt-2 font-medium whitespace-pre-line">{method.reason}</p>
               )}
             </div>
           </label>
