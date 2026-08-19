@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { MerchantDisclosure } from "./MerchantDisclosure";
 import { useCustomerStore } from "@/store/customer-store";
@@ -58,6 +58,21 @@ const normalizeUAEPhone = (phone: string) => {
   return cleanPhone;
 };
 
+const COUNTRIES = [
+  { code: 'AE', name: 'United Arab Emirates' },
+  { code: 'SA', name: 'Saudi Arabia' },
+  { code: 'OM', name: 'Oman' },
+  { code: 'KW', name: 'Kuwait' },
+  { code: 'BH', name: 'Bahrain' },
+  { code: 'QA', name: 'Qatar' },
+  { code: 'US', name: 'United States' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'IN', name: 'India' },
+  { code: 'EG', name: 'Egypt' },
+  { code: 'JO', name: 'Jordan' },
+  { code: 'LB', name: 'Lebanon' }
+];
+
 export function PaymentFlow() {
   const { profile, isLoading, fetchProfile, updateProfile } = useCustomerStore();
   const { cart } = useCartContext();
@@ -67,6 +82,20 @@ export function PaymentFlow() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("checkoutcom");
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
   
+  const [countryQuery, setCountryQuery] = useState("");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const countryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (countryRef.current && !countryRef.current.contains(event.target as Node)) {
+        setShowCountryDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  
   const [form, setForm] = useState({
     email: "",
     phone: "",
@@ -75,6 +104,7 @@ export function PaymentFlow() {
     address_1: "",
     city: "",
     postcode: "",
+    country: "",
   });
 
   useEffect(() => {
@@ -83,6 +113,8 @@ export function PaymentFlow() {
 
   useEffect(() => {
     if (profile) {
+      const initCountry = profile.shipping?.country || profile.billing?.country || "";
+      const countryObj = COUNTRIES.find(c => c.code === initCountry);
       setForm({
         email: profile.billing?.email || profile.email || "",
         phone: profile.billing?.phone || "",
@@ -91,11 +123,15 @@ export function PaymentFlow() {
         address_1: profile.shipping?.address_1 || profile.billing?.address_1 || "",
         city: profile.shipping?.city || profile.billing?.city || "",
         postcode: profile.shipping?.postcode || profile.billing?.postcode || "",
+        country: initCountry,
       });
+      if (countryObj) {
+        setCountryQuery(`${countryObj.name} (${countryObj.code})`);
+      }
     }
   }, [profile]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
@@ -120,7 +156,7 @@ export function PaymentFlow() {
       city: form.city,
       state: "",
       postcode: form.postcode,
-      country: "AE",
+      country: form.country || "AE",
       email: form.email,
       phone: normalizedPhone,
     };
@@ -133,7 +169,7 @@ export function PaymentFlow() {
       city: form.city,
       state: "",
       postcode: form.postcode,
-      country: "AE",
+      country: form.country || "AE",
     };
 
     try {
@@ -217,6 +253,47 @@ export function PaymentFlow() {
           <input type="text" name="address_1" required value={form.address_1} onChange={handleInputChange} placeholder="Address" className="col-span-2 w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
           <input type="text" name="city" required value={form.city} onChange={handleInputChange} placeholder="City" className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
           <input type="text" name="postcode" required value={form.postcode} onChange={handleInputChange} placeholder="Postal Code" className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
+          <div className="col-span-2 relative" ref={countryRef}>
+            <input 
+              type="text" 
+              placeholder="Country"
+              required
+              value={countryQuery}
+              onChange={(e) => {
+                setCountryQuery(e.target.value);
+                setShowCountryDropdown(true);
+                setForm(prev => ({ ...prev, country: "" })); // Clear actual value until selected
+              }}
+              onFocus={() => setShowCountryDropdown(true)}
+              className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors"
+            />
+            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-brand-text">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            
+            {showCountryDropdown && (
+              <div className="absolute z-10 w-full mt-1 bg-brand-surface border border-brand-border shadow-lg max-h-60 overflow-auto">
+                {COUNTRIES.filter(c => c.name.toLowerCase().includes(countryQuery.toLowerCase()) || c.code.toLowerCase().includes(countryQuery.toLowerCase())).length > 0 ? (
+                  COUNTRIES.filter(c => c.name.toLowerCase().includes(countryQuery.toLowerCase()) || c.code.toLowerCase().includes(countryQuery.toLowerCase())).map(c => (
+                    <div 
+                      key={c.code}
+                      className="p-4 cursor-pointer hover:bg-gray-50 text-brand-text text-sm border-b border-brand-border/30 last:border-0"
+                      onClick={() => {
+                        setForm(prev => ({ ...prev, country: c.code }));
+                        setCountryQuery(`${c.name} (${c.code})`);
+                        setShowCountryDropdown(false);
+                      }}
+                    >
+                      {c.name} ({c.code})
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-4 text-sm text-brand-text-muted">No countries found</div>
+                )}
+              </div>
+            )}
+            <input type="hidden" name="country" value={form.country} required />
+          </div>
         </div>
       </section>
 

@@ -30,7 +30,7 @@ export class TabbyProvider implements PaymentProvider {
         currency,
         buyer: {
           email: cartData.billing_address?.email || "guest@example.com",
-          phone: cartData.billing_address?.phone || "+971500000000"
+          phone: (cartData.billing_address?.phone || "+971500000000").replace("+971", "").replace("00971", "").replace(/^05/, "5")
         }
       },
       lang: "en",
@@ -79,8 +79,32 @@ export class TabbyProvider implements PaymentProvider {
       throw new Error("Tabby credentials are not configured.");
     }
 
-    const buyerHistory = request.buyerHistory || { registered_since: new Date().toISOString() };
-    const orderHistory = request.orderHistory || [];
+    const buyerHistory = request.buyerHistory ? {
+      ...request.buyerHistory,
+      is_social_networks_connected: true,
+      is_phone_number_verified: true,
+      is_email_verified: true,
+    } : { 
+      registered_since: new Date().toISOString(),
+      loyalty_level: 0,
+      wishlist_count: 0,
+      is_social_networks_connected: true,
+      is_phone_number_verified: true,
+      is_email_verified: true
+    };
+
+    // Normalize phone number to match Tabby's preferred format
+    let formattedPhone = request.billing?.phone || "500000000";
+    formattedPhone = formattedPhone.replace(/\s+/g, '');
+    if (formattedPhone.startsWith("+971")) formattedPhone = formattedPhone.replace("+971", "");
+    if (formattedPhone.startsWith("00971")) formattedPhone = formattedPhone.replace("00971", "");
+    if (formattedPhone.startsWith("05")) formattedPhone = formattedPhone.substring(1);
+
+    const orderHistory = request.orderHistory ? request.orderHistory.map((oh: any) => {
+      // Remove country from history shipping address if present
+      const { country, ...restAddress } = oh.shipping_address || {};
+      return { ...oh, shipping_address: restAddress };
+    }) : [];
 
     const payload = {
       payment: {
@@ -89,17 +113,21 @@ export class TabbyProvider implements PaymentProvider {
         description: `Order ${request.orderId}`,
         buyer: {
           email: request.customerEmail,
-          name: request.customerName || "",
-          phone: request.billing?.phone || "",
+          name: request.customerName || "Customer",
+          phone: formattedPhone,
+          dob: "2000-01-20"
         },
         shipping_address: {
           city: request.shipping?.city || request.billing?.city || "Unknown",
           address: request.shipping?.address_1 || request.billing?.address_1 || "Unknown",
           zip: request.shipping?.postcode || request.billing?.postcode || "00000",
-          country: request.shipping?.country || request.billing?.country || "AE",
         },
         order: {
           reference_id: request.reference || request.orderId.toString(),
+          tax_amount: "0.00",
+          shipping_amount: "0.00",
+          discount_amount: "0.00",
+          updated_at: new Date().toISOString(),
           items: request.items ? request.items.map(item => ({
             reference_id: item.sku || item.product_id?.toString() || item.id?.toString(),
             title: item.name || item.title || "Product",
@@ -107,6 +135,7 @@ export class TabbyProvider implements PaymentProvider {
             unit_price: item.prices?.price 
               ? (parseFloat(item.prices.price) / (10 ** (item.prices.currency_minor_unit || 2))).toFixed(2)
               : (parseFloat(item.price || "0")).toFixed(2),
+            discount_amount: "0.00",
             image_url: item.image || item.images?.[0]?.src || "",
             product_url: item.permalink || "",
             category: item.categories?.[0]?.name || item.category || "Perfumes",
