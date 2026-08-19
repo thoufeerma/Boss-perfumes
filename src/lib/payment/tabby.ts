@@ -96,6 +96,7 @@ export class TabbyProvider implements PaymentProvider {
           city: request.shipping?.city || request.billing?.city || "Unknown",
           address: request.shipping?.address_1 || request.billing?.address_1 || "Unknown",
           zip: request.shipping?.postcode || request.billing?.postcode || "00000",
+          country: request.shipping?.country || request.billing?.country || "AE",
         },
         order: {
           reference_id: request.reference || request.orderId.toString(),

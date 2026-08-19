@@ -18,9 +18,7 @@ export function PurchaseBlock({ product }: PurchaseBlockProps) {
 
   return (
     <div className="pt-6 space-y-4 mb-8">
-      {price >= 10 && price <= 5000 && (
-        <TabbyPromo price={price} currency="AED" source="product" />
-      )}
+      <TabbyPromo price={price} currency="AED" source="product" />
       <div className="flex gap-4">
         <QuantitySelector 
           quantity={quantity} 

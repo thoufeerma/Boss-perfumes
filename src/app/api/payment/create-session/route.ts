@@ -150,6 +150,7 @@ export async function POST(request: NextRequest) {
                   city: order.shipping?.city || order.billing?.city || "Unknown",
                   address: order.shipping?.address_1 || order.billing?.address_1 || "Unknown",
                   zip: order.shipping?.postcode || order.billing?.postcode || "00000",
+                  country: order.shipping?.country || order.billing?.country || "AE",
                 },
                 items: order.line_items?.map((item: any) => ({
                   reference_id: item.sku || item.product_id?.toString() || item.id?.toString(),

@@ -105,7 +105,7 @@ export function PaymentMethodSelector({ cartData, billingData, selectedMethod, o
             <div className="ml-4 flex-1">
               <div className="flex justify-between items-center">
                 <span className="font-medium text-sm text-brand-text uppercase tracking-wide">
-                  {method.name}
+                  {method.name} {method.nameAr && <span className="normal-case text-xs ml-1">| {method.nameAr}</span>}
                 </span>
                 
                 {/* Visual Indicators/Logos could go here based on method.id */}

@@ -3,6 +3,7 @@ import { paymentConfig } from "./config";
 export interface PaymentMethodConfig {
   id: string;
   name: string;
+  nameAr?: string;
   provider: string;
   enabled: boolean;
   sortOrder: number;
@@ -22,6 +23,7 @@ export const PAYMENT_METHODS: PaymentMethodConfig[] = [
   {
     id: "tabby",
     name: "Pay later with Tabby",
+    nameAr: "ادفع لاحقًا عبر تابي",
     provider: "Tabby",
     enabled: paymentConfig.tabby.enabled,
     sortOrder: 2,
