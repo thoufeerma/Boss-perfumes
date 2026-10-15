@@ -127,10 +127,9 @@ export async function POST(request: NextRequest) {
       try {
         // `orders` has no `email` collection param - WooCommerce ignores it and returns the
         // whole store. `search` matches the billing email on guest and registered orders
-        // alike, but matches loosely, so every row is re-checked below. per_page is 11 so
-        // that dropping the order we just created still leaves the 10 Tabby asks for.
+        // alike, but matches loosely, so every row is re-checked below.
         const customerOrders = await fetchWC("orders", {
-          params: { search: buyerEmail, per_page: "11" },
+          params: { search: buyerEmail, per_page: "25" },
         });
         if (customerOrders && Array.isArray(customerOrders)) {
           const pastOrders = customerOrders.filter(
@@ -154,15 +153,16 @@ export async function POST(request: NextRequest) {
               loyalty_level: pastOrders.filter((o: any) => o.status === 'completed' || o.status === 'processing').length,
             };
 
-            // Tabby accepts only these six values, lowercase. WooCommerce statuses without a
-            // Tabby equivalent (on-hold, failed, checkout-draft, custom ones) go out as unknown.
+            // Tabby accepts only these six values, lowercase: new, processing, complete, refunded, canceled, unknown.
             const mapWcStatusToTabby = (status: string) => {
-              switch (status) {
+              switch (status?.toLowerCase()) {
                 case 'pending': return 'new';
                 case 'processing': return 'processing';
-                case 'completed': return 'complete';
+                case 'completed':
+                case 'complete': return 'complete';
                 case 'refunded': return 'refunded';
-                case 'cancelled': return 'canceled';
+                case 'cancelled':
+                case 'canceled': return 'canceled';
                 default: return 'unknown';
               }
             };

@@ -3,6 +3,8 @@
 import React, { useEffect, useId } from "react";
 import Script from "next/script";
 
+import { useLocale } from "@/components/i18n/I18nProvider";
+
 interface TabbyCardProps {
   price: number;
   currency: string;
@@ -13,9 +15,11 @@ interface TabbyCardProps {
 export function TabbyCard({ 
   price, 
   currency, 
-  lang = "en",
+  lang,
   publicKey = process.env.NEXT_PUBLIC_TABBY_PUBLIC_KEY || "",
 }: TabbyCardProps) {
+  const currentLocale = useLocale();
+  const effectiveLang = lang || currentLocale;
   const reactId = useId();
   const containerId = `TabbyCard-${reactId.replace(/:/g, '')}`;
   const scriptUrl = "https://checkout.tabby.ai/tabby-card.js";
@@ -31,7 +35,7 @@ export function TabbyCard({
           selector: `#${containerId}`,
           currency: currency,
           price: price.toFixed(decimalPlaces),
-          lang: lang,
+          lang: effectiveLang,
           publicKey: publicKey,
           merchantCode: process.env.NEXT_PUBLIC_TABBY_MERCHANT_CODE || ""
         });
@@ -43,7 +47,7 @@ export function TabbyCard({
 
   useEffect(() => {
     initTabby();
-  }, [price, currency]);
+  }, [price, currency, effectiveLang]);
 
   if (!publicKey) return null;
 

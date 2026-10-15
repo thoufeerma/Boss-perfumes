@@ -51,13 +51,14 @@ async function fetchStoreApi(
   endpoint: string, 
   options?: RequestInit, 
   isRetry = false, 
-  overrideNonce?: string
+  overrideNonce?: string,
+  overrideCartToken?: string
 ): Promise<{ data: any; headers: { cartToken: string | null; nonce: string | null } }> {
   const storeUrl = process.env.NEXT_PUBLIC_WC_STORE_URL;
   if (!storeUrl) throw new Error("Missing NEXT_PUBLIC_WC_STORE_URL");
 
   const cookieStore = await cookies();
-  const cartToken = cookieStore.get(CART_TOKEN_COOKIE)?.value;
+  const cartToken = overrideCartToken || cookieStore.get(CART_TOKEN_COOKIE)?.value;
   const nonce = overrideNonce || cookieStore.get(NONCE_COOKIE)?.value;
 
   const url = new URL(`wp-json/wc/store/v1/${endpoint}`, storeUrl);
@@ -138,8 +139,9 @@ async function fetchStoreApi(
       });
       
       const freshNonce = refreshResponse.headers.get("Nonce");
+      const freshCartToken = refreshResponse.headers.get("Cart-Token");
       if (freshNonce) {
-        return fetchStoreApi(endpoint, options, true, freshNonce);
+        return fetchStoreApi(endpoint, options, true, freshNonce, freshCartToken || undefined);
       }
     }
 

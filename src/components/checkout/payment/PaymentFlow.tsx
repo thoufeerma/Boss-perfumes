@@ -84,7 +84,7 @@ export function PaymentFlow() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("checkoutcom");
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
   
-  const [countryQuery, setCountryQuery] = useState("");
+  const [countryQuery, setCountryQuery] = useState("United Arab Emirates (AE)");
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const countryRef = useRef<HTMLDivElement>(null);
 
@@ -106,7 +106,7 @@ export function PaymentFlow() {
     address_1: "",
     city: "",
     postcode: "",
-    country: "",
+    country: "AE",
   });
 
   useEffect(() => {
@@ -115,8 +115,8 @@ export function PaymentFlow() {
 
   useEffect(() => {
     if (profile) {
-      const initCountry = profile.shipping?.country || profile.billing?.country || "";
-      const countryObj = COUNTRIES.find(c => c.code === initCountry);
+      const initCountry = profile.shipping?.country || profile.billing?.country || "AE";
+      const countryObj = COUNTRIES.find(c => c.code === initCountry) || COUNTRIES[0];
       setForm({
         email: profile.billing?.email || profile.email || "",
         phone: profile.billing?.phone || "",
@@ -125,11 +125,9 @@ export function PaymentFlow() {
         address_1: profile.shipping?.address_1 || profile.billing?.address_1 || "",
         city: profile.shipping?.city || profile.billing?.city || "",
         postcode: profile.shipping?.postcode || profile.billing?.postcode || "",
-        country: initCountry,
+        country: countryObj.code,
       });
-      if (countryObj) {
-        setCountryQuery(`${countryObj.name} (${countryObj.code})`);
-      }
+      setCountryQuery(`${countryObj.name} (${countryObj.code})`);
     }
   }, [profile]);
 
@@ -256,44 +254,102 @@ export function PaymentFlow() {
           <input type="text" name="city" required value={form.city} onChange={handleInputChange} placeholder={t.checkout.fields.city} className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
           <input type="text" name="postcode" required value={form.postcode} onChange={handleInputChange} placeholder={t.checkout.fields.postcode} className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
           <div className="col-span-2 relative" ref={countryRef}>
-            <input 
-              type="text" 
-              placeholder={t.checkout.fields.country}
-              required
-              value={countryQuery}
-              onChange={(e) => {
-                setCountryQuery(e.target.value);
-                setShowCountryDropdown(true);
-                setForm(prev => ({ ...prev, country: "" })); // Clear actual value until selected
-              }}
-              onFocus={() => setShowCountryDropdown(true)}
-              className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors"
-            />
-            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-brand-text">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </div>
-            
-            {showCountryDropdown && (
-              <div className="absolute z-10 w-full mt-1 bg-brand-surface border border-brand-border shadow-lg max-h-60 overflow-auto">
-                {COUNTRIES.filter(c => c.name.toLowerCase().includes(countryQuery.toLowerCase()) || c.code.toLowerCase().includes(countryQuery.toLowerCase())).length > 0 ? (
-                  COUNTRIES.filter(c => c.name.toLowerCase().includes(countryQuery.toLowerCase()) || c.code.toLowerCase().includes(countryQuery.toLowerCase())).map(c => (
-                    <div 
-                      key={c.code}
-                      className="p-4 cursor-pointer hover:bg-gray-50 text-brand-text text-sm border-b border-brand-border/30 last:border-0"
-                      onClick={() => {
-                        setForm(prev => ({ ...prev, country: c.code }));
-                        setCountryQuery(`${c.name} (${c.code})`);
-                        setShowCountryDropdown(false);
-                      }}
-                    >
-                      {c.name} ({c.code})
+            {(() => {
+              const selectedCountryObj = COUNTRIES.find(c => c.code === form.country);
+              const isSelectedValue = Boolean(
+                selectedCountryObj && (
+                  countryQuery.trim().toLowerCase() === `${selectedCountryObj.name} (${selectedCountryObj.code})`.toLowerCase() ||
+                  countryQuery.trim().toLowerCase() === selectedCountryObj.name.toLowerCase() ||
+                  countryQuery.trim().toLowerCase() === selectedCountryObj.code.toLowerCase()
+                )
+              );
+
+              const filteredCountries = (!countryQuery.trim() || isSelectedValue)
+                ? COUNTRIES
+                : COUNTRIES.filter(c => 
+                    c.name.toLowerCase().includes(countryQuery.toLowerCase()) || 
+                    c.code.toLowerCase().includes(countryQuery.toLowerCase())
+                  );
+
+              return (
+                <>
+                  <input 
+                    type="text" 
+                    placeholder={t.checkout.fields.country}
+                    required
+                    value={countryQuery}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCountryQuery(val);
+                      setShowCountryDropdown(true);
+                      const matched = COUNTRIES.find(c => 
+                        c.name.toLowerCase() === val.trim().toLowerCase() || 
+                        c.code.toLowerCase() === val.trim().toLowerCase()
+                      );
+                      setForm(prev => ({ ...prev, country: matched ? matched.code : (val.trim() ? val.trim().toUpperCase() : "") }));
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => {
+                        const matched = COUNTRIES.find(c => 
+                          c.name.toLowerCase() === countryQuery.trim().toLowerCase() || 
+                          c.code.toLowerCase() === countryQuery.trim().toLowerCase() ||
+                          countryQuery.toLowerCase().includes(c.name.toLowerCase())
+                        );
+                        if (matched) {
+                          setForm(prev => ({ ...prev, country: matched.code }));
+                          setCountryQuery(`${matched.name} (${matched.code})`);
+                        }
+                      }, 200);
+                    }}
+                    onFocus={(e) => {
+                      setShowCountryDropdown(true);
+                      e.target.select();
+                    }}
+                    onClick={() => setShowCountryDropdown(true)}
+                    className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors cursor-pointer"
+                  />
+                  <div 
+                    className="absolute inset-y-0 right-4 flex items-center cursor-pointer text-brand-text"
+                    onClick={() => setShowCountryDropdown(prev => !prev)}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${showCountryDropdown ? "rotate-180" : ""}`}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </div>
+                  
+                  {showCountryDropdown && (
+                    <div className="absolute z-10 w-full mt-1 bg-brand-surface border border-brand-border shadow-lg max-h-60 overflow-auto">
+                      {filteredCountries.length > 0 ? (
+                        filteredCountries.map(c => {
+                          const isSelected = form.country === c.code;
+                          return (
+                            <div 
+                              key={c.code}
+                              className={`p-4 cursor-pointer hover:bg-gray-50 text-sm border-b border-brand-border/30 last:border-0 flex items-center justify-between transition-colors ${
+                                isSelected ? "bg-brand-bg-secondary font-medium text-brand-text" : "text-brand-text"
+                              }`}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                setForm(prev => ({ ...prev, country: c.code }));
+                                setCountryQuery(`${c.name} (${c.code})`);
+                                setShowCountryDropdown(false);
+                              }}
+                            >
+                              <span>{c.name} ({c.code})</span>
+                              {isSelected && (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-text ms-2">
+                                  <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="p-4 text-sm text-brand-text-muted">{t.checkout.noCountriesFound}</div>
+                      )}
                     </div>
-                  ))
-                ) : (
-                  <div className="p-4 text-sm text-brand-text-muted">{t.checkout.noCountriesFound}</div>
-                )}
-              </div>
-            )}
+                  )}
+                </>
+              );
+            })()}
             <input type="hidden" name="country" value={form.country} required />
           </div>
         </div>

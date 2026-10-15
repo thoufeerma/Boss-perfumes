@@ -8,6 +8,8 @@ import Script from "next/script";
 // NOTE: Since this is a client component, we use NEXT_PUBLIC_ variables for fallback
 // or pass them explicitly as props from the server component.
 
+import { useLocale } from "@/components/i18n/I18nProvider";
+
 interface TabbyPromoProps {
   price: number;
   currency: string;
@@ -21,10 +23,12 @@ export function TabbyPromo({
   price, 
   currency, 
   source = "product", 
-  lang = "en",
+  lang,
   publicKey = process.env.NEXT_PUBLIC_TABBY_PUBLIC_KEY || "",
   scriptUrl = process.env.NEXT_PUBLIC_TABBY_PROMO_SCRIPT_URL || "https://checkout.tabby.ai/tabby-promo.js"
 }: TabbyPromoProps) {
+  const currentLocale = useLocale();
+  const effectiveLang = lang || currentLocale;
   const reactId = useId();
   // Sanitize the ID to be a valid CSS selector if needed (remove colons)
   const containerId = `TabbyPromo-${reactId.replace(/:/g, '')}`;
@@ -40,7 +44,7 @@ export function TabbyPromo({
           selector: `#${containerId}`,
           currency: currency,
           price: price.toFixed(decimalPlaces),
-          lang: lang,
+          lang: effectiveLang,
           source: source,
           publicKey: publicKey,
           merchantCode: process.env.NEXT_PUBLIC_TABBY_MERCHANT_CODE || ""
@@ -54,7 +58,7 @@ export function TabbyPromo({
   useEffect(() => {
     // If script is already loaded (e.g. navigation back to this page)
     initTabby();
-  }, [price, currency]); // Re-initialize if price changes
+  }, [price, currency, effectiveLang]); // Re-initialize if price or language changes
 
   if (!publicKey) {
     return null;
