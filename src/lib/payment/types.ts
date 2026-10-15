@@ -36,8 +36,12 @@ export interface PaymentProvider {
   /**
    * Parses and handles the incoming webhook payload.
    * Resolves with standardized status and metadata.
+   *
+   * `eventId` is the de-duplication key. Providers that reuse one id across every event on
+   * a payment (Tabby does) must supply a key that is unique per event, otherwise later
+   * events such as refunds are discarded as repeats. Omit it to fall back to `payload.id`.
    */
-  handleWebhookEvent(payload: any): Promise<{ orderId: number; status: 'pending' | 'authorized' | 'processing' | 'completed' | 'cancelled' | 'failed' | 'refunded', transactionId?: string, provider?: string, metadata?: Record<string, any> } | null>;
+  handleWebhookEvent(payload: any): Promise<{ orderId: number; status: 'pending' | 'authorized' | 'processing' | 'completed' | 'cancelled' | 'failed' | 'refunded', eventId?: string, transactionId?: string, provider?: string, metadata?: Record<string, any> } | null>;
 
   /**
    * Evaluates if the provider is eligible for the current cart/order.

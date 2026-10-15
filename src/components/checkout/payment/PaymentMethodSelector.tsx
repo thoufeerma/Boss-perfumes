@@ -28,6 +28,9 @@ export function PaymentMethodSelector({ cartData, billingData, selectedMethod, o
             ...cartData.billing_address,
             email: billingData?.email || cartData.billing_address?.email,
             phone: billingData?.phone || cartData.billing_address?.phone,
+            // Country drives market availability (Tabby is UAE-only), so it has to
+            // reach the server-side eligibility check.
+            country: billingData?.country || cartData.billing_address?.country,
           }
         } : cartData;
 
@@ -62,7 +65,7 @@ export function PaymentMethodSelector({ cartData, billingData, selectedMethod, o
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [cartData, billingData?.email, billingData?.phone]);
+  }, [cartData, billingData?.email, billingData?.phone, billingData?.country]);
 
   if (availableMethods.length === 0) {
     return <div className="text-red-500 text-sm">No payment methods available for this order.</div>;
@@ -105,7 +108,7 @@ export function PaymentMethodSelector({ cartData, billingData, selectedMethod, o
             <div className="ml-4 flex-1">
               <div className="flex justify-between items-center">
                 <span className="font-medium text-sm text-brand-text uppercase tracking-wide">
-                  {method.name} {method.nameAr && <span className="normal-case text-xs ml-1">| {method.nameAr}</span>}
+                  {method.name}
                 </span>
                 
                 {/* Visual Indicators/Logos could go here based on method.id */}

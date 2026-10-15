@@ -1,6 +1,34 @@
 import { PaymentProvider, PaymentSessionRequest, PaymentSessionResponse } from "./types";
 import crypto from "crypto";
 import { paymentConfig } from "./config";
+import { messages, SITE_LOCALE } from "@/lib/i18n/messages";
+
+/** The only market Tabby is contracted for. Expanding to the GCC means adding codes here. */
+export const TABBY_SUPPORTED_COUNTRIES = ["AE"];
+
+/** Tabby's `Currency` enum admits exactly these two; anything else is a 400 from their API. */
+export const TABBY_SUPPORTED_CURRENCIES = ["AED", "SAR"];
+
+/** A refund entry as Tabby appends it to a payment's `refunds` array. */
+interface TabbyRefund {
+  id?: string;
+  amount?: string;
+  created_at?: string;
+  reference_id?: string;
+  reason?: string;
+}
+
+/** Maps Tabby's rejection_reason to the message shown to the shopper. */
+function rejectionMessage(reason?: string): string {
+  switch (reason) {
+    case "order_amount_too_high":
+      return messages.tabby.amountTooHigh;
+    case "order_amount_too_low":
+      return messages.tabby.amountTooLow;
+    default:
+      return messages.tabby.notAvailable;
+  }
+}
 
 export class TabbyProvider implements PaymentProvider {
   private secretKey: string;
@@ -17,12 +45,29 @@ export class TabbyProvider implements PaymentProvider {
 
   async isEligible(cartData: any): Promise<{ eligible: boolean; reason?: string }> {
     if (!cartData) return { eligible: false, reason: "Cart data missing" };
-    
+
+    const currency = String(cartData.totals?.currency_code || "AED").toUpperCase();
+
+    // Market and currency gates run BEFORE the fail-safe below: availability must never
+    // depend on Tabby's API being reachable. An empty country means the shopper has not
+    // chosen one yet and checkout defaults to AE, so only an explicit non-AE choice
+    // disqualifies - which is the case Tabby's QA reported.
+    const country = String(
+      cartData.billing_address?.country || cartData.shipping_address?.country || ""
+    ).trim().toUpperCase();
+
+    if (country && !TABBY_SUPPORTED_COUNTRIES.includes(country)) {
+      return { eligible: false, reason: messages.tabby.countryUnsupported };
+    }
+
+    if (!TABBY_SUPPORTED_CURRENCIES.includes(currency)) {
+      return { eligible: false, reason: messages.tabby.currencyUnsupported };
+    }
+
     // Fail-safe approach: if keys are missing or API fails, default to true
     if (!this.secretKey) return { eligible: true };
 
     const amount = (parseFloat(cartData.totals?.total_price || "0") / (10 ** (cartData.totals?.currency_minor_unit || 2))).toFixed(2);
-    const currency = cartData.totals?.currency_code || "AED";
 
     const payload = {
       payment: {
@@ -33,7 +78,7 @@ export class TabbyProvider implements PaymentProvider {
           phone: (cartData.billing_address?.phone || "+971500000000").replace("+971", "").replace("00971", "").replace(/^05/, "5")
         }
       },
-      lang: "en",
+      lang: SITE_LOCALE,
       merchant_code: this.merchantCode
     };
 
@@ -55,15 +100,7 @@ export class TabbyProvider implements PaymentProvider {
       
       if (data.status === "rejected") {
         const reason = data.configuration?.products?.installments?.rejection_reason;
-        let uiMessage = "Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order.\nنأسف، تابي غير قادرة على الموافقة على هذه العملية. الرجاء استخدام طريقة دفع أخرى.";
-        
-        if (reason === "order_amount_too_high") {
-          uiMessage = "This purchase is above your current spending limit with Tabby, try a smaller cart or use another payment method\nقيمة الطلب تفوق الحد الأقصى المسموح به حاليًا مع تابي. يُرجى تخفيض قيمة السلة أو استخدام وسيلة دفع أخرى.";
-        } else if (reason === "order_amount_too_low") {
-          uiMessage = "The purchase amount is below the minimum amount required to use Tabby, try adding more items or use another payment method\nقيمة الطلب أقل من الحد الأدنى المسموح به حاليًا مع تابي. يُرجى زيادة قيمة السلة أو استخدام وسيلة دفع أخرى.";
-        }
-        
-        return { eligible: false, reason: uiMessage };
+        return { eligible: false, reason: rejectionMessage(reason) };
       }
       
       return { eligible: true };
@@ -146,7 +183,7 @@ export class TabbyProvider implements PaymentProvider {
         buyer_history: buyerHistory,
         order_history: orderHistory,
       },
-      lang: "en",
+      lang: SITE_LOCALE,
       merchant_code: this.merchantCode,
       merchant_urls: {
         success: request.successUrl || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout/success`,
@@ -178,10 +215,8 @@ export class TabbyProvider implements PaymentProvider {
         errorData = JSON.parse(errorText);
       } catch (e) {}
 
-      if (errorData?.rejection_reason === "not_available") {
-        throw new Error("Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order. / نأسف، تابي غير قادرة على الموافقة على هذه العملية. الرجاء استخدام طريقة دفع أخرى.");
-      } else if (errorData?.rejection_reason === "order_amount_too_high") {
-        throw new Error("This purchase is above your current spending limit with Tabby, try a smaller cart or use another payment method / قيمة الطلب تفوق الحد الأقصى المسموح به حاليًا مع تابي. يُرجى تخفيض قيمة السلة أو استخدام وسيلة دفع أخرى.");
+      if (errorData?.rejection_reason) {
+        throw new Error(rejectionMessage(errorData.rejection_reason));
       }
       throw new Error(`Failed to create Tabby session: ${errorData?.error || res.statusText}`);
     }
@@ -191,14 +226,10 @@ export class TabbyProvider implements PaymentProvider {
 
     if (data.status === "rejected") {
       const reason = data.configuration?.products?.installments?.rejection_reason || data.payment?.status;
-      if (reason === "not_available" || reason === "REJECTED") {
-        throw new Error("Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order. / نأسف، تابي غير قادرة على الموافقة على هذه العملية. الرجاء استخدام طريقة دفع أخرى.");
-      } else if (reason === "order_amount_too_high") {
-        throw new Error("This purchase is above your current spending limit with Tabby, try a smaller cart or use another payment method / قيمة الطلب تفوق الحد الأقصى المسموح به حاليًا مع تابي. يُرجى تخفيض قيمة السلة أو استخدام وسيلة دفع أخرى.");
-      } else if (reason === "order_amount_too_low") {
-        throw new Error("The purchase amount is below the minimum amount required to use Tabby, try adding more items or use another payment method / قيمة الطلب أقل من الحد الأدنى المسموح به حاليًا مع تابي. يُرجى زيادة قيمة السلة أو استخدام وسيلة دفع أخرى.");
+      if (reason) {
+        throw new Error(rejectionMessage(reason));
       }
-      throw new Error("Tabby rejected the payment session.");
+      throw new Error(messages.tabby.sessionRejected);
     }
 
     return {
@@ -232,7 +263,7 @@ export class TabbyProvider implements PaymentProvider {
     return true;
   }
 
-  async handleWebhookEvent(payload: any): Promise<{ orderId: number; status: "pending" | "authorized" | "processing" | "completed" | "cancelled" | "failed" | "refunded", transactionId?: string, provider?: string, metadata?: Record<string, any> } | null> {
+  async handleWebhookEvent(payload: any): Promise<{ orderId: number; status: "pending" | "authorized" | "processing" | "completed" | "cancelled" | "failed" | "refunded", eventId?: string, transactionId?: string, provider?: string, metadata?: Record<string, any> } | null> {
     if (!payload || !payload.id || !payload.status) {
       return null;
     }
@@ -247,6 +278,13 @@ export class TabbyProvider implements PaymentProvider {
     const paymentId = payload.id;
     let status: "pending" | "authorized" | "processing" | "completed" | "cancelled" | "failed" | "refunded" = "pending";
     let captureId: string | undefined = undefined;
+    let refundedTotal = 0;
+    let refundIds: string[] = [];
+
+    // Tabby reuses the payment id as `payload.id` for every event on a payment, so it
+    // cannot serve as the de-duplication key - a refund would be discarded as a repeat of
+    // the authorization. Each event therefore gets its own key.
+    let eventId = `${paymentId}:${eventStatus}`;
 
     if (eventStatus === "authorized") {
       try {
@@ -306,7 +344,28 @@ export class TabbyProvider implements PaymentProvider {
         return null;
       }
     } else if (eventStatus === "closed") {
-      status = "processing";
+      // A refund does NOT move the payment out of CLOSED - Tabby signals it by appending to
+      // the `refunds` array and resending a `closed` event. So a closed event is a refund
+      // notification when that array is populated, and a plain capture-close when it is not.
+      const refunds: TabbyRefund[] = Array.isArray(payload.refunds) ? payload.refunds : [];
+      refundedTotal = refunds.reduce((sum, r) => sum + parseFloat(r?.amount || "0"), 0);
+      refundIds = refunds.map((r, i) => String(r?.id ?? `refund_${i}`));
+      const paymentAmount = parseFloat(payload.amount || "0");
+
+      if (refunds.length > 0) {
+        // Key off the newest refund so each successive partial refund is processed once.
+        eventId = `${paymentId}:refund:${refundIds[refundIds.length - 1]}`;
+
+        if (paymentAmount > 0 && refundedTotal >= paymentAmount - 0.001) {
+          status = "refunded";
+        } else {
+          // WooCommerce has no partially-refunded status, so the order stays in processing
+          // and the refunded total is recorded in metadata for reconciliation.
+          status = "processing";
+        }
+      } else {
+        status = "processing";
+      }
     } else if (eventStatus === "rejected" || eventStatus === "expired" || eventStatus === "failed") {
       status = "failed";
     } else {
@@ -320,7 +379,11 @@ export class TabbyProvider implements PaymentProvider {
     if (captureId) {
       metadata._tabby_capture_id = captureId;
     }
+    if (refundedTotal > 0) {
+      metadata._tabby_refunded_amount = refundedTotal.toFixed(2);
+      metadata._tabby_refund_ids = refundIds;
+    }
 
-    return { orderId, status, transactionId: paymentId, provider: "Tabby", metadata };
+    return { orderId, status, eventId, transactionId: paymentId, provider: "Tabby", metadata };
   }
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPaymentProvider } from "@/lib/payment";
 import { getEnabledPaymentMethods } from "@/lib/payment/registry";
+import { TABBY_SUPPORTED_COUNTRIES } from "@/lib/payment/tabby";
+import { messages } from "@/lib/i18n/messages";
 import { cookies } from "next/headers";
 import { fetchWC } from "@/api/client";
 import { getCart } from "@/api/cart";
@@ -39,6 +41,16 @@ export async function POST(request: NextRequest) {
     // Resolve payment method details
     const methods = getEnabledPaymentMethods();
     const selectedMethod = methods.find(m => m.id === paymentMethod) || methods[0] || { id: "checkoutcom", name: "Checkout.com", provider: "Checkout.com" };
+
+    // Market gate, enforced here as well as in isEligible: the client-side eligibility
+    // check is advisory, and a stale or hand-rolled request could still ask for Tabby from
+    // outside the UAE. Refuse before an order is created.
+    if (selectedMethod.id === "tabby") {
+      const country = String(shipping?.country || billing?.country || "").trim().toUpperCase();
+      if (country && !TABBY_SUPPORTED_COUNTRIES.includes(country)) {
+        return NextResponse.json({ error: messages.tabby.countryUnsupported }, { status: 400 });
+      }
+    }
 
     orderId = existingOrderId;
 

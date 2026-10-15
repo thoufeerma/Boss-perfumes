@@ -4,6 +4,7 @@ export const metadata = {
 
 import { CheckoutSummary } from "./CheckoutSummary";
 import { PaymentFlow } from "@/components/checkout/payment/PaymentFlow";
+import { messages } from "@/lib/i18n/messages";
 
 export default async function CheckoutPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const params = await searchParams;
@@ -11,21 +12,9 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
   let errorMessage: React.ReactNode = null;
   
   if (error === "tabby_cancel") {
-    errorMessage = (
-      <>
-        You aborted the payment. Please retry or choose another payment method.
-        <br />
-        لقد ألغيت الدفعة. فضلاً حاول مجددًا أو اختر طريقة دفع أخرى.
-      </>
-    );
+    errorMessage = messages.tabby.cancelled;
   } else if (error === "tabby_failed") {
-    errorMessage = (
-      <>
-        Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order.
-        <br />
-        نأسف، تابي غير قادرة على الموافقة على هذه العملية. الرجاء استخدام طريقة دفع أخرى.
-      </>
-    );
+    errorMessage = messages.tabby.notAvailable;
   } else if (error) {
     errorMessage = "Payment failed. Please try again or use another payment method.";
   }

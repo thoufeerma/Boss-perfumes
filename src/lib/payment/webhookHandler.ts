@@ -42,7 +42,7 @@ export async function processWebhook(request: NextRequest, providerId?: string) 
       return NextResponse.json({ received: true });
     }
 
-    const { orderId, status, transactionId, provider: providerName, metadata: providerMetadata } = event;
+    const { orderId, status, eventId: providerEventId, transactionId, provider: providerName, metadata: providerMetadata } = event;
 
     // Fetch current order to check state and idempotency
     const currentOrder = await fetchWC(`orders/${orderId}`, { method: "GET" });
@@ -51,7 +51,9 @@ export async function processWebhook(request: NextRequest, providerId?: string) 
     }
 
     const processedEvents = currentOrder.meta_data.find((m: any) => m.key === "_processed_webhook_events")?.value || [];
-    const eventId = payload.id || transactionId; // Unique event identifier
+    // Prefer the provider's own key: `payload.id` is only unique per event for providers
+    // that mint a fresh id per event, which Tabby does not.
+    const eventId = providerEventId || payload.id || transactionId;
     
     if (eventId && Array.isArray(processedEvents) && processedEvents.includes(eventId)) {
        return NextResponse.json({ received: true, message: "Duplicate event ignored" });

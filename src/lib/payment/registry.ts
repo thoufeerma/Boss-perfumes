@@ -1,9 +1,9 @@
 import { paymentConfig } from "./config";
+import { messages } from "@/lib/i18n/messages";
 
 export interface PaymentMethodConfig {
   id: string;
   name: string;
-  nameAr?: string;
   provider: string;
   enabled: boolean;
   sortOrder: number;
@@ -22,12 +22,11 @@ export const PAYMENT_METHODS: PaymentMethodConfig[] = [
   },
   {
     id: "tabby",
-    name: "Pay later with Tabby",
-    nameAr: "ادفع لاحقًا عبر تابي",
+    name: messages.tabby.methodName,
     provider: "Tabby",
     enabled: paymentConfig.tabby.enabled,
     sortOrder: 2,
-    description: "Split your payment into 4 interest-free installments",
+    description: messages.tabby.methodDescription,
   },
   {
     id: "telr",

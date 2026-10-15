@@ -124,8 +124,16 @@ async function fetchStoreApi(
     ) {
       console.log("[Cart API] Nonce invalid/missing. Refreshing nonce via GET /wc/store/v1/cart and retrying...");
       
+      // Only send Cart-Token when we actually have one. An empty header is not the same as
+      // an absent one - WooCommerce treats it as a malformed token and refuses to issue a
+      // fresh nonce, which left the retry with nothing to retry with.
+      const refreshHeaders = new Headers();
+      if (cartToken) {
+        refreshHeaders.set("Cart-Token", cartToken);
+      }
+
       const refreshResponse = await fetch(new URL("wp-json/wc/store/v1/cart", storeUrl).toString(), {
-        headers: { "Cart-Token": cartToken || "" },
+        headers: refreshHeaders,
         cache: "no-store",
       });
       
