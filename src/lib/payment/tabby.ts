@@ -79,19 +79,12 @@ export class TabbyProvider implements PaymentProvider {
       throw new Error("Tabby credentials are not configured.");
     }
 
-    const buyerHistory = request.buyerHistory ? {
-      ...request.buyerHistory,
-      is_social_networks_connected: true,
-      is_phone_number_verified: true,
-      is_email_verified: true,
-    } : { 
-      registered_since: new Date().toISOString(),
-      loyalty_level: 0,
-      wishlist_count: 0,
-      is_social_networks_connected: true,
-      is_phone_number_verified: true,
-      is_email_verified: true
-    };
+    // Only `registered_since` is required. The is_*_verified / is_social_networks_connected
+    // flags are deliberately omitted rather than asserted: we have no social login and do not
+    // verify guest emails or phones, and these feed Tabby's risk scoring.
+    const buyerHistory = request.buyerHistory
+      ? { registered_since: new Date().toISOString(), ...request.buyerHistory }
+      : { registered_since: new Date().toISOString(), loyalty_level: 0 };
 
     // Normalize phone number to match Tabby's preferred format
     let formattedPhone = request.billing?.phone || "500000000";
@@ -115,7 +108,8 @@ export class TabbyProvider implements PaymentProvider {
           email: request.customerEmail,
           name: request.customerName || "Customer",
           phone: formattedPhone,
-          dob: "2000-01-20"
+          // dob is optional and we never collect it; sending a placeholder would feed
+          // Tabby a fabricated date of birth identical for every customer.
         },
         shipping_address: {
           city: request.shipping?.city || request.billing?.city || "Unknown",
@@ -128,19 +122,26 @@ export class TabbyProvider implements PaymentProvider {
           shipping_amount: "0.00",
           discount_amount: "0.00",
           updated_at: new Date().toISOString(),
-          items: request.items ? request.items.map(item => ({
-            reference_id: item.sku || item.product_id?.toString() || item.id?.toString(),
-            title: item.name || item.title || "Product",
-            quantity: item.quantity || 1,
-            unit_price: item.prices?.price 
-              ? (parseFloat(item.prices.price) / (10 ** (item.prices.currency_minor_unit || 2))).toFixed(2)
-              : (parseFloat(item.price || "0")).toFixed(2),
-            discount_amount: "0.00",
-            image_url: item.image || item.images?.[0]?.src || "",
-            product_url: item.permalink || "",
-            category: item.categories?.[0]?.name || item.category || "Perfumes",
-            brand: "Boss Perfumes",
-          })) : [],
+          items: request.items ? request.items.map(item => {
+            // image_url and product_url are declared `format: uri`, so an empty string is
+            // invalid - leave the key out entirely when we have no URL.
+            const imageUrl = item.image || item.images?.[0]?.src;
+            const productUrl = item.permalink;
+
+            return {
+              reference_id: item.sku || item.product_id?.toString() || item.id?.toString(),
+              title: item.name || item.title || "Product",
+              quantity: item.quantity || 1,
+              unit_price: item.prices?.price
+                ? (parseFloat(item.prices.price) / (10 ** (item.prices.currency_minor_unit || 2))).toFixed(2)
+                : (parseFloat(item.price || "0")).toFixed(2),
+              discount_amount: "0.00",
+              ...(imageUrl ? { image_url: imageUrl } : {}),
+              ...(productUrl ? { product_url: productUrl } : {}),
+              category: item.categories?.[0]?.name || item.category || "Perfumes",
+              brand: "Boss Perfumes",
+            };
+          }) : [],
         },
         buyer_history: buyerHistory,
         order_history: orderHistory,
@@ -158,17 +159,8 @@ export class TabbyProvider implements PaymentProvider {
       }
     };
 
-    const response = await fetch(`${this.apiUrl}/checkout`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${this.publicKey}`, // Tabby v2 uses public key for checkout creation in some integrations, or secret key. Using secret key is safer for backend.
-        // Wait, Tabby docs say: "Include your secret_key in the request header...". Let's use secretKey.
-      },
-    });
-
     console.log("TABBY SESSION PAYLOAD:", JSON.stringify(payload, null, 2));
 
-    // We'll update headers to use secretKey.
     const res = await fetch(`${this.apiUrl}/checkout`, {
       method: "POST",
       headers: {
