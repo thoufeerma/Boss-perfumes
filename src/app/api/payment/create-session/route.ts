@@ -105,11 +105,23 @@ export async function POST(request: NextRequest) {
     };
     let orderHistory: any[] = [];
 
-    if (billing.email) {
+    const buyerEmail = String(billing.email || "").trim().toLowerCase();
+
+    if (buyerEmail) {
       try {
-        const customerOrders = await fetchWC("orders", { params: { email: billing.email } });
+        // `orders` has no `email` collection param - WooCommerce ignores it and returns the
+        // whole store. `search` matches the billing email on guest and registered orders
+        // alike, but matches loosely, so every row is re-checked below. per_page is 11 so
+        // that dropping the order we just created still leaves the 10 Tabby asks for.
+        const customerOrders = await fetchWC("orders", {
+          params: { search: buyerEmail, per_page: "11" },
+        });
         if (customerOrders && Array.isArray(customerOrders)) {
-          const pastOrders = customerOrders.filter((o: any) => o.id !== orderId);
+          const pastOrders = customerOrders.filter(
+            (o: any) =>
+              o.id !== orderId &&
+              String(o.billing?.email || "").trim().toLowerCase() === buyerEmail
+          );
           if (pastOrders.length > 0) {
             pastOrders.sort((a: any, b: any) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime());
             
@@ -126,15 +138,16 @@ export async function POST(request: NextRequest) {
               loyalty_level: pastOrders.filter((o: any) => o.status === 'completed' || o.status === 'processing').length,
             };
 
+            // Tabby accepts only these six values, lowercase. WooCommerce statuses without a
+            // Tabby equivalent (on-hold, failed, checkout-draft, custom ones) go out as unknown.
             const mapWcStatusToTabby = (status: string) => {
               switch (status) {
-                case 'pending': return 'NEW';
-                case 'processing': return 'PROCESSING';
-                case 'completed': return 'COMPLETE';
-                case 'refunded': return 'REFUNDED';
-                case 'cancelled': return 'CANCELED';
-                case 'failed': return 'FAILED';
-                default: return 'UNKNOWN';
+                case 'pending': return 'new';
+                case 'processing': return 'processing';
+                case 'completed': return 'complete';
+                case 'refunded': return 'refunded';
+                case 'cancelled': return 'canceled';
+                default: return 'unknown';
               }
             };
 
