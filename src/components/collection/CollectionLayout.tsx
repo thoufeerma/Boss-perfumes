@@ -64,7 +64,7 @@ export function CollectionLayout({
 
           {/* Independent Scrolling Grid Area */}
           <div 
-            className="lg:flex-1 lg:overflow-y-auto lg:pr-4 pb-24 lg:pb-12"
+            className="lg:flex-1 lg:overflow-y-auto lg:pe-4 pb-24 lg:pb-12"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             <style dangerouslySetInnerHTML={{__html: `

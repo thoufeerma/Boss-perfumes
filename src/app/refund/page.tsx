@@ -37,7 +37,7 @@ export default function RefundPage() {
           <p className="mb-6">
             The following items are strictly non-returnable:
           </p>
-          <ul className="list-disc pl-6 mt-2 mb-6">
+          <ul className="list-disc ps-6 mt-2 mb-6">
             <li>Opened or used perfumes and fragrances.</li>
             <li>Products with tampered or broken seals.</li>
             <li>Items purchased on final sale or clearance.</li>

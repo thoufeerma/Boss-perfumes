@@ -7,7 +7,7 @@ export function BoutiqueHero() {
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-12 lg:gap-24 animate-fade-in-up">
         
         {/* Left: Content */}
-        <div className="w-full md:w-1/2 flex flex-col items-start text-left">
+        <div className="w-full md:w-1/2 flex flex-col items-start text-start">
           {/* Eyebrow text */}
           <span className="text-xs md:text-sm tracking-[0.2em] md:tracking-[0.3em] uppercase text-brand-text/60 font-medium mb-16 md:mb-24 block">
             Curated Works

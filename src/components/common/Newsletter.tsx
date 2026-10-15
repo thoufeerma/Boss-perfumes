@@ -20,7 +20,7 @@ export function Newsletter() {
           />
           <button
             type="submit"
-            className="sm:ml-8 text-sm font-medium tracking-widest uppercase text-brand-text hover:text-brand-accent transition-colors relative after:absolute after:-bottom-1 after:left-0 after:w-full after:h-[1px] after:bg-brand-text hover:after:bg-brand-accent self-start sm:self-auto pt-2 sm:pt-0"
+            className="sm:ms-8 text-sm font-medium tracking-widest uppercase text-brand-text hover:text-brand-accent transition-colors relative after:absolute after:-bottom-1 after:left-0 after:w-full after:h-[1px] after:bg-brand-text hover:after:bg-brand-accent self-start sm:self-auto pt-2 sm:pt-0"
           >
             Subscribe
           </button>

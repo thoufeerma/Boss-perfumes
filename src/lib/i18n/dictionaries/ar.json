@@ -1,0 +1,98 @@
+{
+  "nav": {
+    "collections": "المجموعات",
+    "brands": "العلامات التجارية",
+    "men": "رجالي",
+    "women": "نسائي",
+    "luxury": "الفخامة",
+    "offers": "العروض",
+    "luxuryCollection": "مجموعة الفخامة",
+    "wishlist": "المفضلة",
+    "account": "الحساب",
+    "home": "الرئيسية"
+  },
+  "header": {
+    "toggleMenu": "تبديل القائمة",
+    "search": "البحث",
+    "account": "الحساب",
+    "wishlist": "المفضلة",
+    "cart": "حقيبة التسوق",
+    "brand": "Boss Perfumes"
+  },
+  "footer": {
+    "newsletterPitch": "الأصدقاء يشاركون أصدقاءهم أفضل المنتجات والمحتوى.",
+    "emailPlaceholder": "أدخل البريد الإلكتروني...",
+    "subscribe": "اشترك",
+    "shop": "تسوّق",
+    "allPerfumes": "جميع العطور",
+    "mens": "رجالي",
+    "womens": "نسائي",
+    "unisex": "للجنسين",
+    "support": "الدعم",
+    "contactUs": "اتصل بنا"
+  },
+  "policies": {
+    "terms": "الشروط والأحكام",
+    "privacy": "سياسة الخصوصية",
+    "refund": "سياسة الاسترجاع",
+    "shipping": "سياسة الشحن"
+  },
+  "cart": {
+    "empty": "حقيبتك فارغة حاليًا.",
+    "continueShopping": "متابعة التسوق",
+    "subtotal": "المجموع الفرعي",
+    "taxNote": "يتم حساب الشحن والضرائب عند إتمام الدفع.",
+    "proceed": "إتمام الشراء"
+  },
+  "search": {
+    "title": "البحث",
+    "close": "إغلاق البحث",
+    "placeholder": "ابحث عن عطور أو علامات تجارية...",
+    "featured": "منتجات مختارة",
+    "loadingFeatured": "جارٍ تحميل المنتجات المختارة..."
+  },
+  "menu": {
+    "logout": "تسجيل الخروج",
+    "needHelp": "تحتاج مساعدة؟"
+  },
+  "checkout": {
+    "title": "إتمام الشراء",
+    "contactInformation": "معلومات الاتصال",
+    "shippingAddress": "عنوان الشحن",
+    "paymentMethod": "طريقة الدفع",
+    "noPaymentMethods": "لا تتوفر طرق دفع لهذا الطلب.",
+    "redirectNotice": "سيتم تحويلك بشكل آمن لإتمام عملية الدفع.",
+    "noCountriesFound": "لا توجد دول مطابقة",
+    "genericPaymentError": "تعذّر إتمام الدفع. يُرجى المحاولة مرة أخرى أو استخدام طريقة دفع أخرى.",
+    "fields": {
+      "email": "البريد الإلكتروني",
+      "mobile": "رقم الهاتف المحمول",
+      "firstName": "الاسم الأول",
+      "lastName": "اسم العائلة",
+      "address": "العنوان",
+      "city": "المدينة",
+      "postcode": "الرمز البريدي",
+      "country": "الدولة"
+    },
+    "placeOrder": "إتمام الطلب",
+    "processing": "جارٍ المعالجة..."
+  },
+  "merchant": {
+    "priceNotice": "جميع الأسعار المعروضة على هذا الموقع بالدرهم الإماراتي (AED).",
+    "policiesIntro": "بإتمام طلبك، فإنك توافق على سياساتنا:",
+    "companyInformation": "معلومات الشركة",
+    "contactUs": "اتصل بنا",
+    "email": "البريد الإلكتروني:",
+    "businessHours": "ساعات العمل",
+    "hoursWeekdays": "الإثنين - السبت: 9:30 صباحًا - 8:30 مساءً",
+    "hoursSunday": "الأحد: مغلق",
+    "currencyAndPayments": "العملة وطرق الدفع",
+    "sslNotice": "اتصال مشفّر SSL / دفع آمن"
+  },
+  "summary": {
+    "orderSummary": "ملخص الطلب",
+    "cartEmpty": "حقيبتك فارغة.",
+    "total": "الإجمالي",
+    "yourCart": "حقيبتك"
+  }
+}

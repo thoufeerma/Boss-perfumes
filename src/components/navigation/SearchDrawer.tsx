@@ -9,8 +9,10 @@ import { searchProductsAction, getFeaturedProductsAction } from "@/actions/searc
 import type { WCProduct } from "@/api/products";
 import Image from "next/image";
 import Link from "next/link";
+import { useT } from "@/components/i18n/I18nProvider";
 
 export function SearchDrawer() {
+  const t = useT();
   const { isSearchOpen, setSearchOpen } = useUIStore();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<WCProduct[]>([]);
@@ -149,11 +151,11 @@ export function SearchDrawer() {
       >
         <div className="mx-auto max-w-7xl px-6 lg:px-12 pt-8 pb-4 w-full">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-serif text-brand-text">Search</h2>
+            <h2 className="text-xl font-serif text-brand-text">{t.search.title}</h2>
             <button
               onClick={() => setSearchOpen(false)}
-              className="p-2 -mr-2 text-brand-text hover:opacity-70 transition-opacity"
-              aria-label="Close search"
+              className="p-2 -me-2 text-brand-text hover:opacity-70 transition-opacity"
+              aria-label={t.search.close}
             >
               <X className="w-5 h-5" strokeWidth={1.5} />
             </button>
@@ -166,8 +168,8 @@ export function SearchDrawer() {
               type="text"
               value={query}
               onChange={handleSearchChange}
-              placeholder="Search for fragrances, brands..."
-              className="w-full bg-transparent border-none border-b border-brand-border pb-4 pl-10 text-2xl font-serif focus:outline-none focus:ring-0 placeholder:text-brand-text-muted/50 text-brand-text"
+              placeholder={t.search.placeholder}
+              className="w-full bg-transparent border-none border-b border-brand-border pb-4 ps-10 text-2xl font-serif focus:outline-none focus:ring-0 placeholder:text-brand-text-muted/50 text-brand-text"
               autoFocus={isSearchOpen}
             />
             {isLoading && (
@@ -192,7 +194,7 @@ export function SearchDrawer() {
           ) : (
             <div className="mt-4">
               <h3 className="text-sm font-medium tracking-wide uppercase text-brand-text-muted mb-6">
-                Featured Products
+                {t.search.featured}
               </h3>
               {featuredProducts.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
@@ -201,7 +203,7 @@ export function SearchDrawer() {
               ) : (
                 <div className="flex items-center gap-2 text-brand-text-muted">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Loading featured...</span>
+                  <span className="text-sm">{t.search.loadingFeatured}</span>
                 </div>
               )}
             </div>

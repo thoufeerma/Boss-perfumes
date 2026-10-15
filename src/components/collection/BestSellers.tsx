@@ -70,7 +70,7 @@ export async function BestSellers({ data }: BestSellersProps = {}) {
               </div>
 
               {/* Content */}
-              <div className="relative z-10 text-left">
+              <div className="relative z-10 text-start">
                 <span className="inline-block text-xs font-semibold tracking-[0.2em] text-white/80 uppercase mb-4 drop-shadow-md">
                   {leftLabel}
                 </span>

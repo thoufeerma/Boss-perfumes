@@ -95,7 +95,7 @@ function VerifyOtpContent() {
         </p>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 text-sm text-left">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 text-sm text-start">
             {error}
           </div>
         )}

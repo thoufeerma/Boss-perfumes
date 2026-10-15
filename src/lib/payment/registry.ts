@@ -1,5 +1,6 @@
 import { paymentConfig } from "./config";
-import { messages } from "@/lib/i18n/messages";
+import { paymentMessages } from "@/lib/i18n/messages";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
 
 export interface PaymentMethodConfig {
   id: string;
@@ -11,33 +12,45 @@ export interface PaymentMethodConfig {
   description?: string;
 }
 
-export const PAYMENT_METHODS: PaymentMethodConfig[] = [
-  {
-    id: "checkoutcom",
-    name: "Credit / Debit Card",
-    provider: "Checkout.com",
-    enabled: paymentConfig.checkoutcom.enabled,
-    sortOrder: 1,
-    description: "Visa • Mastercard",
-  },
-  {
-    id: "tabby",
-    name: messages.tabby.methodName,
-    provider: "Tabby",
-    enabled: paymentConfig.tabby.enabled,
-    sortOrder: 2,
-    description: messages.tabby.methodDescription,
-  },
-  {
-    id: "telr",
-    name: "Secure Payment",
-    provider: "Telr",
-    enabled: paymentConfig.telr.enabled,
-    sortOrder: 3,
-    description: "Secure UAE Payment Gateway",
-  },
-];
+/**
+ * The configured methods, with labels in the given language.
+ *
+ * A function rather than a constant because the shopper picks the language per request,
+ * so the labels cannot be fixed at module load.
+ */
+export function paymentMethods(locale: Locale = DEFAULT_LOCALE): PaymentMethodConfig[] {
+  const m = paymentMessages(locale);
 
-export const getEnabledPaymentMethods = () => {
-  return PAYMENT_METHODS.filter((method) => method.enabled).sort((a, b) => a.sortOrder - b.sortOrder);
+  return [
+    {
+      id: "checkoutcom",
+      name: m.methods.card.name,
+      provider: "Checkout.com",
+      enabled: paymentConfig.checkoutcom.enabled,
+      sortOrder: 1,
+      description: m.methods.card.description,
+    },
+    {
+      id: "tabby",
+      name: m.tabby.methodName,
+      provider: "Tabby",
+      enabled: paymentConfig.tabby.enabled,
+      sortOrder: 2,
+      description: m.tabby.methodDescription,
+    },
+    {
+      id: "telr",
+      name: m.methods.telr.name,
+      provider: "Telr",
+      enabled: paymentConfig.telr.enabled,
+      sortOrder: 3,
+      description: m.methods.telr.description,
+    },
+  ];
+}
+
+export const getEnabledPaymentMethods = (locale: Locale = DEFAULT_LOCALE) => {
+  return paymentMethods(locale)
+    .filter((method) => method.enabled)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
 };

@@ -30,7 +30,7 @@ export function ProductAccordion({ items }: ProductAccordionProps) {
           <div key={item.id} className="py-4">
             <button
               onClick={() => toggle(item.id)}
-              className="flex items-center justify-between w-full text-left focus:outline-none group"
+              className="flex items-center justify-between w-full text-start focus:outline-none group"
               aria-expanded={isOpen}
             >
               <span className="text-[13px] font-bold text-[#111111] tracking-[0.1em] uppercase">

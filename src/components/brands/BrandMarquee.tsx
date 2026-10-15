@@ -43,7 +43,7 @@ export function BrandMarquee({
       >
         <div 
           className={cn(
-            "flex shrink-0 min-w-full items-center justify-around gap-[var(--marquee-gap)] pr-[var(--marquee-gap)]",
+            "flex shrink-0 min-w-full items-center justify-around gap-[var(--marquee-gap)] pe-[var(--marquee-gap)]",
             direction === "left" ? "animate-marquee" : "animate-marquee [animation-direction:reverse]",
             pauseOnHover && "group-hover/marquee:[animation-play-state:paused]"
           )}
@@ -67,7 +67,7 @@ export function BrandMarquee({
         
         <div 
           className={cn(
-            "flex shrink-0 min-w-full items-center justify-around gap-[var(--marquee-gap)] pr-[var(--marquee-gap)]",
+            "flex shrink-0 min-w-full items-center justify-around gap-[var(--marquee-gap)] pe-[var(--marquee-gap)]",
             direction === "left" ? "animate-marquee" : "animate-marquee [animation-direction:reverse]",
             pauseOnHover && "group-hover/marquee:[animation-play-state:paused]"
           )}

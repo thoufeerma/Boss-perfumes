@@ -1,7 +1,8 @@
 import { PaymentProvider, PaymentSessionRequest, PaymentSessionResponse } from "./types";
 import crypto from "crypto";
 import { paymentConfig } from "./config";
-import { messages, SITE_LOCALE } from "@/lib/i18n/messages";
+import { paymentMessages } from "@/lib/i18n/messages";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
 
 /** The only market Tabby is contracted for. Expanding to the GCC means adding codes here. */
 export const TABBY_SUPPORTED_COUNTRIES = ["AE"];
@@ -18,15 +19,16 @@ interface TabbyRefund {
   reason?: string;
 }
 
-/** Maps Tabby's rejection_reason to the message shown to the shopper. */
-function rejectionMessage(reason?: string): string {
+/** Maps Tabby's rejection_reason to the message shown to the shopper, in their language. */
+function rejectionMessage(reason: string | undefined, locale: Locale): string {
+  const m = paymentMessages(locale).tabby;
   switch (reason) {
     case "order_amount_too_high":
-      return messages.tabby.amountTooHigh;
+      return m.amountTooHigh;
     case "order_amount_too_low":
-      return messages.tabby.amountTooLow;
+      return m.amountTooLow;
     default:
-      return messages.tabby.notAvailable;
+      return m.notAvailable;
   }
 }
 
@@ -43,9 +45,10 @@ export class TabbyProvider implements PaymentProvider {
     this.apiUrl = paymentConfig.tabby.apiUrl || "https://api.tabby.ai/api/v2";
   }
 
-  async isEligible(cartData: any): Promise<{ eligible: boolean; reason?: string }> {
+  async isEligible(cartData: any, locale: Locale = DEFAULT_LOCALE): Promise<{ eligible: boolean; reason?: string }> {
     if (!cartData) return { eligible: false, reason: "Cart data missing" };
 
+    const m = paymentMessages(locale).tabby;
     const currency = String(cartData.totals?.currency_code || "AED").toUpperCase();
 
     // Market and currency gates run BEFORE the fail-safe below: availability must never
@@ -57,11 +60,11 @@ export class TabbyProvider implements PaymentProvider {
     ).trim().toUpperCase();
 
     if (country && !TABBY_SUPPORTED_COUNTRIES.includes(country)) {
-      return { eligible: false, reason: messages.tabby.countryUnsupported };
+      return { eligible: false, reason: m.countryUnsupported };
     }
 
     if (!TABBY_SUPPORTED_CURRENCIES.includes(currency)) {
-      return { eligible: false, reason: messages.tabby.currencyUnsupported };
+      return { eligible: false, reason: m.currencyUnsupported };
     }
 
     // Fail-safe approach: if keys are missing or API fails, default to true
@@ -78,7 +81,7 @@ export class TabbyProvider implements PaymentProvider {
           phone: (cartData.billing_address?.phone || "+971500000000").replace("+971", "").replace("00971", "").replace(/^05/, "5")
         }
       },
-      lang: SITE_LOCALE,
+      lang: locale,
       merchant_code: this.merchantCode
     };
 
@@ -100,7 +103,7 @@ export class TabbyProvider implements PaymentProvider {
       
       if (data.status === "rejected") {
         const reason = data.configuration?.products?.installments?.rejection_reason;
-        return { eligible: false, reason: rejectionMessage(reason) };
+        return { eligible: false, reason: rejectionMessage(reason, locale) };
       }
       
       return { eligible: true };
@@ -115,6 +118,10 @@ export class TabbyProvider implements PaymentProvider {
     if (!this.secretKey || !this.publicKey) {
       throw new Error("Tabby credentials are not configured.");
     }
+
+    // Drives both the rejection messages we surface and Tabby's own hosted checkout, so
+    // the shopper does not get bounced from an Arabic storefront into an English HPP.
+    const locale = request.locale ?? DEFAULT_LOCALE;
 
     // Only `registered_since` is required. The is_*_verified / is_social_networks_connected
     // flags are deliberately omitted rather than asserted: we have no social login and do not
@@ -183,7 +190,7 @@ export class TabbyProvider implements PaymentProvider {
         buyer_history: buyerHistory,
         order_history: orderHistory,
       },
-      lang: SITE_LOCALE,
+      lang: locale,
       merchant_code: this.merchantCode,
       merchant_urls: {
         success: request.successUrl || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout/success`,
@@ -216,7 +223,7 @@ export class TabbyProvider implements PaymentProvider {
       } catch (e) {}
 
       if (errorData?.rejection_reason) {
-        throw new Error(rejectionMessage(errorData.rejection_reason));
+        throw new Error(rejectionMessage(errorData.rejection_reason, locale));
       }
       throw new Error(`Failed to create Tabby session: ${errorData?.error || res.statusText}`);
     }
@@ -227,9 +234,9 @@ export class TabbyProvider implements PaymentProvider {
     if (data.status === "rejected") {
       const reason = data.configuration?.products?.installments?.rejection_reason || data.payment?.status;
       if (reason) {
-        throw new Error(rejectionMessage(reason));
+        throw new Error(rejectionMessage(reason, locale));
       }
-      throw new Error(messages.tabby.sessionRejected);
+      throw new Error(paymentMessages(locale).tabby.sessionRejected);
     }
 
     return {

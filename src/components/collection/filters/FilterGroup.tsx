@@ -17,7 +17,7 @@ export function FilterGroup({ title, children, defaultExpanded = true }: FilterG
     <div className="border-b border-[#ECE8E2] py-5">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between text-left focus:outline-none"
+        className="flex w-full items-center justify-between text-start focus:outline-none"
       >
         <h3 className="text-[11px] font-bold tracking-[0.2em] uppercase text-brand-text">
           {title}

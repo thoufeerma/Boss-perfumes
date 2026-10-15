@@ -5,6 +5,7 @@ import { PaymentMethodConfig } from "@/lib/payment/registry";
 import { TabbyPromo } from "@/components/payment/TabbyPromo";
 import { TabbyCard } from "@/components/payment/TabbyCard";
 import Image from "next/image";
+import { useT } from "@/components/i18n/I18nProvider";
 
 interface PaymentMethodSelectorProps {
   cartData: any; // Ideally typed according to your cart state
@@ -14,6 +15,7 @@ interface PaymentMethodSelectorProps {
 }
 
 export function PaymentMethodSelector({ cartData, billingData, selectedMethod, onSelect }: PaymentMethodSelectorProps) {
+  const t = useT();
   const [availableMethods, setAvailableMethods] = useState<(PaymentMethodConfig & { eligible: boolean, reason?: string })[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -68,12 +70,12 @@ export function PaymentMethodSelector({ cartData, billingData, selectedMethod, o
   }, [cartData, billingData?.email, billingData?.phone, billingData?.country]);
 
   if (availableMethods.length === 0) {
-    return <div className="text-red-500 text-sm">No payment methods available for this order.</div>;
+    return <div className="text-red-500 text-sm">{t.checkout.noPaymentMethods}</div>;
   }
 
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-medium tracking-widest uppercase text-brand-text mb-4">Payment Method</h2>
+      <h2 className="text-sm font-medium tracking-widest uppercase text-brand-text mb-4">{t.checkout.paymentMethod}</h2>
       
       <div className="flex flex-col gap-3">
         {availableMethods.map((method) => (
@@ -105,7 +107,7 @@ export function PaymentMethodSelector({ cartData, billingData, selectedMethod, o
               className="w-4 h-4 text-brand-text border-brand-border focus:ring-brand-accent focus:ring-1 accent-brand-text disabled:opacity-50"
             />
             
-            <div className="ml-4 flex-1">
+            <div className="ms-4 flex-1">
               <div className="flex justify-between items-center">
                 <span className="font-medium text-sm text-brand-text uppercase tracking-wide">
                   {method.name}

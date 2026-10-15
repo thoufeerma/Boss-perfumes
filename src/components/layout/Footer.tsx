@@ -1,24 +1,28 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MerchantInformation } from "@/components/common/MerchantInformation";
+import { getLocale } from "@/lib/i18n/server";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
-export function Footer() {
+export async function Footer() {
+  const t = getDictionary(await getLocale());
+
   return (
     <footer className="bg-brand-bg-secondary pt-24 pb-12 px-6 lg:px-12 border-t border-brand-border">
       <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-8 mb-24">
         {/* Brand & Newsletter col */}
         <div className="md:col-span-4">
           <p className="text-sm font-medium uppercase tracking-widest text-brand-text mb-6">
-            Friends let friends know about best products and content.
+            {t.footer.newsletterPitch}
           </p>
           <form className="flex border-b border-brand-border pb-2 group mb-8">
             <input 
               type="email" 
-              placeholder="Enter email address..." 
+              placeholder={t.footer.emailPlaceholder} 
               className="bg-transparent flex-1 focus:outline-none placeholder:text-brand-text-muted text-brand-text"
             />
             <button type="submit" className="p-2 text-brand-text group-hover:text-brand-accent transition-colors">
-              <span className="sr-only">Subscribe</span>
+              <span className="sr-only">{t.footer.subscribe}</span>
               →
             </button>
           </form>
@@ -38,24 +42,24 @@ export function Footer() {
 
         {/* Links Col 1 */}
         <div className="md:col-span-2">
-          <h4 className="text-sm font-medium uppercase tracking-widest text-brand-text mb-6">Shop</h4>
+          <h4 className="text-sm font-medium uppercase tracking-widest text-brand-text mb-6">{t.footer.shop}</h4>
           <ul className="flex flex-col gap-4">
-            <li><Link href="/collections" className="text-brand-text-muted hover:text-brand-text transition-colors">All Perfumes</Link></li>
-            <li><Link href="/category/men" className="text-brand-text-muted hover:text-brand-text transition-colors">Men's</Link></li>
-            <li><Link href="/category/women" className="text-brand-text-muted hover:text-brand-text transition-colors">Women's</Link></li>
-            <li><Link href="/category/unisex" className="text-brand-text-muted hover:text-brand-text transition-colors">Unisex</Link></li>
+            <li><Link href="/collections" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.allPerfumes}</Link></li>
+            <li><Link href="/category/men" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.mens}</Link></li>
+            <li><Link href="/category/women" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.womens}</Link></li>
+            <li><Link href="/category/unisex" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.unisex}</Link></li>
           </ul>
         </div>
 
         {/* Links Col 2 */}
         <div className="md:col-span-2">
-          <h4 className="text-sm font-medium uppercase tracking-widest text-brand-text mb-6">Support</h4>
+          <h4 className="text-sm font-medium uppercase tracking-widest text-brand-text mb-6">{t.footer.support}</h4>
           <ul className="flex flex-col gap-4">
-            <li><Link href="/terms" className="text-brand-text-muted hover:text-brand-text transition-colors">Terms & Conditions</Link></li>
-            <li><Link href="/privacy" className="text-brand-text-muted hover:text-brand-text transition-colors">Privacy Policy</Link></li>
-            <li><Link href="/refund" className="text-brand-text-muted hover:text-brand-text transition-colors">Refund Policy</Link></li>
-            <li><Link href="/shipping" className="text-brand-text-muted hover:text-brand-text transition-colors">Shipping Policy</Link></li>
-            <li><Link href="/contact" className="text-brand-text-muted hover:text-brand-text transition-colors">Contact Us</Link></li>
+            <li><Link href="/terms" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.terms}</Link></li>
+            <li><Link href="/privacy" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.privacy}</Link></li>
+            <li><Link href="/refund" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.refund}</Link></li>
+            <li><Link href="/shipping" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.shipping}</Link></li>
+            <li><Link href="/contact" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.contactUs}</Link></li>
           </ul>
         </div>
 

@@ -8,19 +8,21 @@ import { createUrl } from "@/lib/navigation";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import { useAuthState } from "@/components/auth/AuthProvider";
 import { useAuth } from "@/hooks/useAuth";
+import { useT } from "@/components/i18n/I18nProvider";
 
 const NAV_LINKS = [
-  { label: "Collections", href: "/collections" },
-  { label: "Brands", href: "/brands" },
-  { label: "Men", href: "/collections/men" },
-  { label: "Women", href: "/collections/women" },
-  { label: "Luxury Collection", href: "/collections/luxury" },
-  { label: "Offers", href: "/collections/offers" },
-  { label: "Wishlist", href: "/wishlist?v=new" },
-  { label: "Account", href: "/account" },
-];
+  { key: "collections", href: "/collections" },
+  { key: "brands", href: "/brands" },
+  { key: "men", href: "/collections/men" },
+  { key: "women", href: "/collections/women" },
+  { key: "luxuryCollection", href: "/collections/luxury" },
+  { key: "offers", href: "/collections/offers" },
+  { key: "wishlist", href: "/wishlist?v=new" },
+  { key: "account", href: "/account" },
+] as const;
 
 export function MobileMenu() {
+  const t = useT();
   const { isMobileMenuOpen, setMobileMenuOpen } = useUIStore();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -55,7 +57,8 @@ export function MobileMenu() {
       >
         <nav className="flex flex-col gap-6">
           {NAV_LINKS.map((link, i) => {
-            const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+            // No entry in NAV_LINKS is "/", so startsWith needs no home-page guard.
+            const isActive = pathname === link.href || pathname.startsWith(link.href);
             
             // Preserve query params when navigating between collections
             const isCollectionNav = pathname.startsWith("/collections") && link.href.startsWith("/collections");
@@ -65,7 +68,7 @@ export function MobileMenu() {
 
             return (
               <Link
-                key={link.label}
+                key={link.key}
                 href={finalHref}
                 className={cn(
                   "text-2xl font-serif transition-colors",
@@ -74,7 +77,7 @@ export function MobileMenu() {
                 onClick={() => setMobileMenuOpen(false)}
                 style={{ transitionDelay: isMobileMenuOpen ? `${i * 50}ms` : '0ms' }}
               >
-                {link.label}
+                {t.nav[link.key]}
               </Link>
             );
           })}
@@ -82,16 +85,16 @@ export function MobileMenu() {
           {isAuthenticated && (
             <button
               onClick={handleLogout}
-              className="text-2xl font-serif transition-colors text-brand-text/60 hover:text-brand-text text-left"
+              className="text-2xl font-serif transition-colors text-brand-text/60 hover:text-brand-text text-start"
               style={{ transitionDelay: isMobileMenuOpen ? `${NAV_LINKS.length * 50}ms` : '0ms' }}
             >
-              Logout
+              {t.menu.logout}
             </button>
           )}
         </nav>
         
         <div className="mt-auto">
-          <p className="text-sm text-brand-text-muted mb-4 uppercase tracking-widest">Need Help?</p>
+          <p className="text-sm text-brand-text-muted mb-4 uppercase tracking-widest">{t.menu.needHelp}</p>
           <a href="mailto:brbossperfumes@gmail.com" className="text-base text-brand-text hover:underline underline-offset-4">brbossperfumes@gmail.com</a>
         </div>
       </div>

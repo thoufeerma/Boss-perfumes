@@ -130,7 +130,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 <div className="flex flex-wrap gap-4 mb-8 pt-6 border-t border-[#ECE8E2]">
                   {otherAttributes.map(attr => (
                     <div key={attr.id} className="text-sm">
-                      <span className="text-gray-500 uppercase tracking-wider text-xs mr-2">{attr.name}:</span>
+                      <span className="text-gray-500 uppercase tracking-wider text-xs me-2">{attr.name}:</span>
                       <span className="font-medium text-[#111111]">{attr.options.join(", ")}</span>
                     </div>
                   ))}

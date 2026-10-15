@@ -57,11 +57,11 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
   return (
     <div className="relative group/carousel">
       <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex -ml-4 md:-ml-8 lg:-ml-8">
+        <div className="flex -ms-4 md:-ms-8 lg:-ms-8">
           {products.map((product) => (
             <div
               key={product.id}
-              className="flex-none w-1/2 lg:w-1/4 pl-4 md:pl-8 lg:pl-8"
+              className="flex-none w-1/2 lg:w-1/4 ps-4 md:ps-8 lg:ps-8"
             >
               <ProductCard product={product} />
             </div>

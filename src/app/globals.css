@@ -37,4 +37,17 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  /* Inter and Cormorant Garamond carry no Arabic glyphs, so the Arabic storefront swaps
+     to Noto Kufi Arabic for both the sans and serif roles. Keyed off <html lang>, which
+     the root layout sets from the chosen locale. */
+  html[lang="ar"] body,
+  html[lang="ar"] .font-serif {
+    font-family: var(--font-arabic), var(--font-sans);
+  }
+
+  /* The marquee slides left; mirror it so RTL reads the same way round. */
+  html[dir="rtl"] .animate-marquee {
+    animation-direction: reverse;
+  }
 }

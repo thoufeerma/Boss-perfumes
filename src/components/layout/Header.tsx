@@ -10,17 +10,21 @@ import { useCartContext } from "@/components/cart/CartProvider";
 import { useWishlistStore } from "@/store/wishlist-store";
 import { cn } from "@/lib/utils";
 import { createUrl } from "@/lib/navigation";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import type { Locale } from "@/lib/i18n/config";
+import { useT } from "@/components/i18n/I18nProvider";
 
 const NAV_LINKS = [
-  { label: "Collections", href: "/collections" },
-  { label: "Brands", href: "/brands" },
-  { label: "Men", href: "/collections/men" },
-  { label: "Women", href: "/collections/women" },
-  { label: "Luxury", href: "/collections/luxury" },
-  { label: "Offers", href: "/collections/offers" },
-];
+  { key: "collections", href: "/collections" },
+  { key: "brands", href: "/brands" },
+  { key: "men", href: "/collections/men" },
+  { key: "women", href: "/collections/women" },
+  { key: "luxury", href: "/collections/luxury" },
+  { key: "offers", href: "/collections/offers" },
+] as const;
 
-export function Header() {
+export function Header({ locale }: { locale: Locale }) {
+  const t = useT();
   const [isScrolled, setIsScrolled] = useState(false);
   const { isMobileMenuOpen, setMobileMenuOpen, setSearchOpen, setCartOpen } = useUIStore();
   const pathname = usePathname();
@@ -50,7 +54,8 @@ export function Header() {
         {/* Left: Desktop Navigation */}
         <nav className="hidden lg:flex items-center gap-8">
           {NAV_LINKS.map((link) => {
-            const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+            // No entry in NAV_LINKS is "/", so startsWith needs no home-page guard.
+            const isActive = pathname === link.href || pathname.startsWith(link.href);
             
             // Preserve query params when navigating between collections
             const isCollectionNav = pathname.startsWith("/collections") && link.href.startsWith("/collections");
@@ -60,14 +65,14 @@ export function Header() {
 
             return (
               <Link
-                key={link.label}
+                key={link.key}
                 href={finalHref}
                 className={cn(
                   "text-sm font-medium tracking-wide uppercase transition-colors duration-300 relative group",
                   isActive ? "text-brand-text" : "text-brand-text-muted hover:text-brand-text"
                 )}
               >
-                {link.label}
+                {t.nav[link.key]}
                 <span className={cn(
                   "absolute left-0 -bottom-1 w-full h-[1px] bg-brand-text transition-transform duration-300 origin-left ease-out",
                   isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
@@ -79,9 +84,9 @@ export function Header() {
 
         {/* Left: Mobile Menu Toggle */}
         <button
-          className="lg:hidden p-2 -ml-2 text-brand-text hover:opacity-70 transition-opacity"
+          className="lg:hidden p-2 -ms-2 text-brand-text hover:opacity-70 transition-opacity"
           onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Toggle Menu"
+          aria-label={t.header.toggleMenu}
         >
           {isMobileMenuOpen ? <X className="w-5 h-5" strokeWidth={1.5} /> : <Menu className="w-5 h-5" strokeWidth={1.5} />}
         </button>
@@ -104,24 +109,25 @@ export function Header() {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-4 md:gap-6">
+          <LanguageSwitcher current={locale} />
           <button
             onClick={() => setSearchOpen(true)}
             className="p-1 text-brand-text hover:opacity-70 transition-opacity"
-            aria-label="Search"
+            aria-label={t.header.search}
           >
             <Search className="w-5 h-5" strokeWidth={1.5} />
           </button>
           <Link
             href="/account"
             className="hidden md:block p-1 text-brand-text hover:opacity-70 transition-opacity"
-            aria-label="Account"
+            aria-label={t.header.account}
           >
             <User className="w-5 h-5" strokeWidth={1.5} />
           </Link>
           <Link
             href="/wishlist?v=new"
             className="p-1 text-brand-text hover:opacity-70 transition-opacity relative"
-            aria-label="Wishlist"
+            aria-label={t.header.wishlist}
           >
             <Heart className="w-5 h-5" strokeWidth={1.5} />
             <WishlistBadge />
@@ -129,7 +135,7 @@ export function Header() {
           <button
             onClick={() => setCartOpen(true)}
             className="p-1 text-brand-text hover:opacity-70 transition-opacity relative"
-            aria-label="Cart"
+            aria-label={t.header.cart}
           >
             <ShoppingBag className="w-5 h-5" strokeWidth={1.5} />
             <CartBadge />

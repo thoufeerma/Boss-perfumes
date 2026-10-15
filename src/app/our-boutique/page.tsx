@@ -15,7 +15,7 @@ export default function OurBoutiquePage() {
         <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center gap-12 lg:gap-24">
           
           {/* Left: Address Info */}
-          <div className="w-full md:w-1/2 flex flex-col text-left">
+          <div className="w-full md:w-1/2 flex flex-col text-start">
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif text-brand-text mb-6">
               Visit Us Today
             </h2>

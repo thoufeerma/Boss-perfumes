@@ -6,6 +6,7 @@ import { MerchantDisclosure } from "./MerchantDisclosure";
 import { useCustomerStore } from "@/store/customer-store";
 import { useCartContext } from "@/components/cart/CartProvider";
 import { PaymentMethodSelector } from "./PaymentMethodSelector";
+import { useT } from "@/components/i18n/I18nProvider";
 
 function PaymentFlowSkeleton() {
   return (
@@ -74,6 +75,7 @@ const COUNTRIES = [
 ];
 
 export function PaymentFlow() {
+  const t = useT();
   const { profile, isLoading, fetchProfile, updateProfile } = useCustomerStore();
   const { cart } = useCartContext();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -222,7 +224,7 @@ export function PaymentFlow() {
   return (
     <form className="space-y-12" onSubmit={handleSubmit}>
       <section>
-        <h2 className="text-sm font-medium tracking-widest uppercase text-brand-text mb-6">Contact Information</h2>
+        <h2 className="text-sm font-medium tracking-widest uppercase text-brand-text mb-6">{t.checkout.contactInformation}</h2>
         <div className="space-y-4">
           <input 
             type="email" 
@@ -230,7 +232,7 @@ export function PaymentFlow() {
             required
             value={form.email}
             onChange={handleInputChange}
-            placeholder="Email" 
+            placeholder={t.checkout.fields.email} 
             className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors"
           />
           <input 
@@ -239,24 +241,24 @@ export function PaymentFlow() {
             required
             value={form.phone}
             onChange={handleInputChange}
-            placeholder="Mobile Number" 
+            placeholder={t.checkout.fields.mobile} 
             className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors"
           />
         </div>
       </section>
       
       <section>
-        <h2 className="text-sm font-medium tracking-widest uppercase text-brand-text mb-6">Shipping Address</h2>
+        <h2 className="text-sm font-medium tracking-widest uppercase text-brand-text mb-6">{t.checkout.shippingAddress}</h2>
         <div className="grid grid-cols-2 gap-4">
-          <input type="text" name="first_name" required value={form.first_name} onChange={handleInputChange} placeholder="First Name" className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
-          <input type="text" name="last_name" required value={form.last_name} onChange={handleInputChange} placeholder="Last Name" className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
-          <input type="text" name="address_1" required value={form.address_1} onChange={handleInputChange} placeholder="Address" className="col-span-2 w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
-          <input type="text" name="city" required value={form.city} onChange={handleInputChange} placeholder="City" className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
-          <input type="text" name="postcode" required value={form.postcode} onChange={handleInputChange} placeholder="Postal Code" className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
+          <input type="text" name="first_name" required value={form.first_name} onChange={handleInputChange} placeholder={t.checkout.fields.firstName} className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
+          <input type="text" name="last_name" required value={form.last_name} onChange={handleInputChange} placeholder={t.checkout.fields.lastName} className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
+          <input type="text" name="address_1" required value={form.address_1} onChange={handleInputChange} placeholder={t.checkout.fields.address} className="col-span-2 w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
+          <input type="text" name="city" required value={form.city} onChange={handleInputChange} placeholder={t.checkout.fields.city} className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
+          <input type="text" name="postcode" required value={form.postcode} onChange={handleInputChange} placeholder={t.checkout.fields.postcode} className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
           <div className="col-span-2 relative" ref={countryRef}>
             <input 
               type="text" 
-              placeholder="Country"
+              placeholder={t.checkout.fields.country}
               required
               value={countryQuery}
               onChange={(e) => {
@@ -288,7 +290,7 @@ export function PaymentFlow() {
                     </div>
                   ))
                 ) : (
-                  <div className="p-4 text-sm text-brand-text-muted">No countries found</div>
+                  <div className="p-4 text-sm text-brand-text-muted">{t.checkout.noCountriesFound}</div>
                 )}
               </div>
             )}
@@ -305,7 +307,7 @@ export function PaymentFlow() {
           onSelect={setSelectedPaymentMethod} 
         />
         <div className="bg-brand-surface border border-brand-border p-6 text-center text-brand-text-muted text-sm mb-6 mt-6">
-          You will be redirected securely to complete your payment.
+          {t.checkout.redirectNotice}
         </div>
         <MerchantDisclosure />
       </section>
@@ -321,7 +323,7 @@ export function PaymentFlow() {
         disabled={isProcessing}
         className="w-full bg-brand-text text-white py-4 text-sm font-medium tracking-widest uppercase hover:bg-brand-accent transition-colors duration-300 disabled:opacity-50"
       >
-        {isProcessing ? "Processing..." : "Place Order"}
+        {isProcessing ? t.checkout.processing : t.checkout.placeOrder}
       </button>
     </form>
   );

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPaymentProvider } from "@/lib/payment";
 import { getEnabledPaymentMethods } from "@/lib/payment/registry";
 import { TABBY_SUPPORTED_COUNTRIES } from "@/lib/payment/tabby";
-import { messages } from "@/lib/i18n/messages";
+import { paymentMessages } from "@/lib/i18n/messages";
+import { getLocale } from "@/lib/i18n/server";
 import { cookies } from "next/headers";
 import { fetchWC } from "@/api/client";
 import { getCart } from "@/api/cart";
@@ -39,7 +40,10 @@ export async function POST(request: NextRequest) {
     const customerId = currentUser?.data?.user?.id || 0;
 
     // Resolve payment method details
-    const methods = getEnabledPaymentMethods();
+    // The shopper's language decides the method labels stored on the order and the
+    // language Tabby's hosted checkout is rendered in.
+    const locale = await getLocale();
+    const methods = getEnabledPaymentMethods(locale);
     const selectedMethod = methods.find(m => m.id === paymentMethod) || methods[0] || { id: "checkoutcom", name: "Checkout.com", provider: "Checkout.com" };
 
     // Market gate, enforced here as well as in isEligible: the client-side eligibility
@@ -48,7 +52,7 @@ export async function POST(request: NextRequest) {
     if (selectedMethod.id === "tabby") {
       const country = String(shipping?.country || billing?.country || "").trim().toUpperCase();
       if (country && !TABBY_SUPPORTED_COUNTRIES.includes(country)) {
-        return NextResponse.json({ error: messages.tabby.countryUnsupported }, { status: 400 });
+        return NextResponse.json({ error: paymentMessages(locale).tabby.countryUnsupported }, { status: 400 });
       }
     }
 
@@ -211,6 +215,7 @@ export async function POST(request: NextRequest) {
       buyerHistory: buyerHistory,
       orderHistory: orderHistory,
       cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout`,
+      locale,
     });
 
     return NextResponse.json({ ...session, orderId });

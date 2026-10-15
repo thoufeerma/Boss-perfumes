@@ -33,7 +33,7 @@ export function FilterSidebar({
   return (
     <FilterDrawer>
       <div 
-        className="space-y-2 lg:h-full lg:overflow-y-auto lg:pr-2 lg:pb-12"
+        className="space-y-2 lg:h-full lg:overflow-y-auto lg:pe-2 lg:pb-12"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         <style dangerouslySetInnerHTML={{__html: `

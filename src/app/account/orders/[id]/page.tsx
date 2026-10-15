@@ -78,11 +78,11 @@ export default async function OrderDetailsPage({ params }: { params: { id: strin
 
       <h3 className="text-sm font-medium tracking-widest uppercase text-brand-text mb-4">Order Items</h3>
       <div className="overflow-x-auto mb-8 border border-brand-border">
-        <table className="w-full text-left text-sm text-brand-text">
+        <table className="w-full text-start text-sm text-brand-text">
           <thead className="bg-brand-bg-secondary border-b border-brand-border uppercase tracking-widest text-xs font-medium text-brand-text-muted">
             <tr>
               <th className="py-4 px-4 font-normal">Product</th>
-              <th className="py-4 px-4 font-normal text-right">Total</th>
+              <th className="py-4 px-4 font-normal text-end">Total</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-border">
@@ -92,7 +92,7 @@ export default async function OrderDetailsPage({ params }: { params: { id: strin
                   <div className="font-medium mb-1">{item.name}</div>
                   <div className="text-xs text-brand-text-muted">Quantity: {item.quantity}</div>
                 </td>
-                <td className="py-4 px-4 text-right">
+                <td className="py-4 px-4 text-end">
                   <span dangerouslySetInnerHTML={{ __html: order.currency_symbol }} />
                   {parseFloat(item.total).toFixed(2)}
                 </td>
@@ -101,28 +101,28 @@ export default async function OrderDetailsPage({ params }: { params: { id: strin
           </tbody>
           <tfoot className="bg-brand-bg-secondary divide-y divide-brand-border">
             <tr>
-              <th className="py-3 px-4 text-right font-normal text-xs uppercase tracking-widest text-brand-text-muted">Subtotal:</th>
-              <td className="py-3 px-4 text-right font-medium">
+              <th className="py-3 px-4 text-end font-normal text-xs uppercase tracking-widest text-brand-text-muted">Subtotal:</th>
+              <td className="py-3 px-4 text-end font-medium">
                 <span dangerouslySetInnerHTML={{ __html: order.currency_symbol }} />
                 {parseFloat(order.total) - parseFloat(order.total_tax) - parseFloat(order.shipping_total)}
               </td>
             </tr>
             <tr>
-              <th className="py-3 px-4 text-right font-normal text-xs uppercase tracking-widest text-brand-text-muted">Shipping:</th>
-              <td className="py-3 px-4 text-right font-medium">
+              <th className="py-3 px-4 text-end font-normal text-xs uppercase tracking-widest text-brand-text-muted">Shipping:</th>
+              <td className="py-3 px-4 text-end font-medium">
                 <span dangerouslySetInnerHTML={{ __html: order.currency_symbol }} />
                 {parseFloat(order.shipping_total).toFixed(2)}
               </td>
             </tr>
             <tr>
-              <th className="py-3 px-4 text-right font-normal text-xs uppercase tracking-widest text-brand-text-muted">Payment Method:</th>
-              <td className="py-3 px-4 text-right font-medium">
+              <th className="py-3 px-4 text-end font-normal text-xs uppercase tracking-widest text-brand-text-muted">Payment Method:</th>
+              <td className="py-3 px-4 text-end font-medium">
                 {order.payment_method_title}
               </td>
             </tr>
             <tr>
-              <th className="py-4 px-4 text-right font-medium text-sm uppercase tracking-widest text-brand-text">Total:</th>
-              <td className="py-4 px-4 text-right font-medium text-lg">
+              <th className="py-4 px-4 text-end font-medium text-sm uppercase tracking-widest text-brand-text">Total:</th>
+              <td className="py-4 px-4 text-end font-medium text-lg">
                 <span dangerouslySetInnerHTML={{ __html: order.currency_symbol }} />
                 {parseFloat(order.total).toFixed(2)}
               </td>

@@ -41,7 +41,7 @@ export function CategoryNavigation({ categories, selectedCategorySlug }: Categor
           </div>
           <span 
             className={cn(
-              "text-[13px] transition-colors duration-200 flex-1 text-left",
+              "text-[13px] transition-colors duration-200 flex-1 text-start",
               !selectedCategorySlug ? "font-bold text-[#111111]" : "text-gray-500 group-hover:text-[#111111]"
             )}
           >
@@ -74,7 +74,7 @@ export function CategoryNavigation({ categories, selectedCategorySlug }: Categor
               </div>
               <span 
                 className={cn(
-                  "text-[13px] transition-colors duration-200 flex-1 text-left",
+                  "text-[13px] transition-colors duration-200 flex-1 text-start",
                   isSelected ? "font-bold text-[#111111]" : "text-gray-500 group-hover:text-[#111111]"
                 )}
               >

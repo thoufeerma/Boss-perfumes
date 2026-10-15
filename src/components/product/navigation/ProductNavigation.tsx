@@ -17,7 +17,7 @@ export function ProductNavigation({ prevProduct, nextProduct }: ProductNavProps)
           className="group flex flex-col items-start gap-2"
         >
           <span className="flex items-center text-xs font-bold uppercase tracking-widest text-gray-400 group-hover:text-[#111111] transition-colors">
-            <ChevronLeft className="w-4 h-4 mr-1" />
+            <ChevronLeft className="w-4 h-4 me-1" />
             Previous
           </span>
           <span className="text-sm font-serif text-[#111111]">{prevProduct.name}</span>
@@ -27,11 +27,11 @@ export function ProductNavigation({ prevProduct, nextProduct }: ProductNavProps)
       {nextProduct ? (
         <Link 
           href={`/product/${nextProduct.slug}`}
-          className="group flex flex-col items-end gap-2 text-right"
+          className="group flex flex-col items-end gap-2 text-end"
         >
           <span className="flex items-center text-xs font-bold uppercase tracking-widest text-gray-400 group-hover:text-[#111111] transition-colors">
             Next
-            <ChevronRight className="w-4 h-4 ml-1" />
+            <ChevronRight className="w-4 h-4 ms-1" />
           </span>
           <span className="text-sm font-serif text-[#111111]">{nextProduct.name}</span>
         </Link>

@@ -95,7 +95,7 @@ export function HorizontalGallery() {
           className="flex items-center gap-12 md:gap-16 lg:gap-24 px-[10vw] md:px-[20vw] will-change-transform"
         >
           {/* Intro Text Block */}
-          <div className="shrink-0 w-[85vw] md:w-[40vw] lg:w-[30vw] flex flex-col items-start text-left">
+          <div className="shrink-0 w-[85vw] md:w-[40vw] lg:w-[30vw] flex flex-col items-start text-start">
             <span className="text-xs md:text-sm tracking-[0.2em] md:tracking-[0.3em] uppercase text-brand-text/60 font-medium mb-16 md:mb-24 block">
               Curated Works
             </span>

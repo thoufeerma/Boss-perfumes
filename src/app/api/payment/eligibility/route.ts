@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEnabledPaymentMethods } from "@/lib/payment/registry";
 import { getPaymentProvider } from "@/lib/payment/providerFactory";
+import { getLocale } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,14 +11,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "cartData is required" }, { status: 400 });
     }
 
-    const enabledMethods = getEnabledPaymentMethods();
-    
+    // Method labels and any rejection reason have to come back in the shopper's language.
+    const locale = await getLocale();
+    const enabledMethods = getEnabledPaymentMethods(locale);
+
     // Evaluate eligibility in parallel for performance
     const methodsWithEligibility = await Promise.all(
       enabledMethods.map(async (method) => {
         try {
           const provider = getPaymentProvider(method.id);
-          const check = await provider.isEligible(cartData);
+          const check = await provider.isEligible(cartData, locale);
           return { ...method, eligible: check.eligible, reason: check.reason };
         } catch (e) {
           console.error(`Error checking eligibility for ${method.id}:`, e);

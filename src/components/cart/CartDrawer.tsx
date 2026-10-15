@@ -9,8 +9,10 @@ import { X, Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { TabbyPromo } from "@/components/payment/TabbyPromo";
+import { useT } from "@/components/i18n/I18nProvider";
 
 export function CartDrawer() {
+  const t = useT();
   const { isCartOpen, setCartOpen } = useUIStore();
   const { cart, cartCount } = useCartContext();
   const { remove, update, isUpdating } = useCart();
@@ -35,11 +37,11 @@ export function CartDrawer() {
       >
         <div className="flex items-center justify-between p-6 lg:p-8 border-b border-brand-border">
           <h2 className="text-xl font-serif text-brand-text tracking-widest uppercase">
-            Your Cart {cartCount > 0 && `(${cartCount})`}
+            {t.summary.yourCart} {cartCount > 0 && `(${cartCount})`}
           </h2>
           <button
             onClick={() => setCartOpen(false)}
-            className="p-2 -mr-2 text-brand-text hover:opacity-70 transition-opacity"
+            className="p-2 -me-2 text-brand-text hover:opacity-70 transition-opacity"
           >
             <X className="w-5 h-5" strokeWidth={1.5} />
           </button>
@@ -49,12 +51,12 @@ export function CartDrawer() {
         <div className="flex-1 overflow-y-auto p-6 lg:p-8">
           {(!cart || !cart.items || cart.items.length === 0) ? (
             <div className="flex flex-col items-center justify-center h-full text-brand-text-muted">
-              <p className="mb-4">Your cart is currently empty.</p>
+              <p className="mb-4">{t.cart.empty}</p>
               <button 
                 onClick={() => setCartOpen(false)}
                 className="text-brand-text underline underline-offset-4 tracking-widest uppercase text-sm"
               >
-                Continue Shopping
+                {t.cart.continueShopping}
               </button>
             </div>
           ) : (
@@ -132,7 +134,7 @@ export function CartDrawer() {
         {cart && cart.items && cart.items.length > 0 && cart.totals && (
           <div className="p-6 lg:p-8 border-t border-brand-border bg-brand-bg">
             <div className="flex justify-between text-brand-text mb-6">
-              <span className="uppercase tracking-widest text-sm font-medium">Subtotal</span>
+              <span className="uppercase tracking-widest text-sm font-medium">{t.cart.subtotal}</span>
               <span className="font-medium">
                 {formatPrice(cart.totals.total_price, cart.totals.currency_code, 10 ** (cart.totals.currency_minor_unit || 2))}
               </span>
@@ -147,13 +149,13 @@ export function CartDrawer() {
               );
             })()}
 
-            <p className="text-brand-text-muted text-xs mb-6 text-center">Shipping & taxes calculated at checkout.</p>
+            <p className="text-brand-text-muted text-xs mb-6 text-center">{t.cart.taxNote}</p>
             <Link
               href="/checkout"
               onClick={() => setCartOpen(false)}
               className="flex items-center justify-center w-full py-4 bg-brand-text text-white text-sm font-medium tracking-widest uppercase hover:bg-brand-accent transition-colors duration-300"
             >
-              Proceed to Checkout
+              {t.cart.proceed}
             </Link>
           </div>
         )}

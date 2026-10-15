@@ -1,0 +1,98 @@
+{
+  "nav": {
+    "collections": "Collections",
+    "brands": "Brands",
+    "men": "Men",
+    "women": "Women",
+    "luxury": "Luxury",
+    "offers": "Offers",
+    "luxuryCollection": "Luxury Collection",
+    "wishlist": "Wishlist",
+    "account": "Account",
+    "home": "Home"
+  },
+  "header": {
+    "toggleMenu": "Toggle Menu",
+    "search": "Search",
+    "account": "Account",
+    "wishlist": "Wishlist",
+    "cart": "Cart",
+    "brand": "Boss Perfumes"
+  },
+  "footer": {
+    "newsletterPitch": "Friends let friends know about best products and content.",
+    "emailPlaceholder": "Enter email address...",
+    "subscribe": "Subscribe",
+    "shop": "Shop",
+    "allPerfumes": "All Perfumes",
+    "mens": "Men's",
+    "womens": "Women's",
+    "unisex": "Unisex",
+    "support": "Support",
+    "contactUs": "Contact Us"
+  },
+  "policies": {
+    "terms": "Terms & Conditions",
+    "privacy": "Privacy Policy",
+    "refund": "Refund Policy",
+    "shipping": "Shipping Policy"
+  },
+  "cart": {
+    "empty": "Your cart is currently empty.",
+    "continueShopping": "Continue Shopping",
+    "subtotal": "Subtotal",
+    "taxNote": "Shipping & taxes calculated at checkout.",
+    "proceed": "Proceed to Checkout"
+  },
+  "search": {
+    "title": "Search",
+    "close": "Close search",
+    "placeholder": "Search for fragrances, brands...",
+    "featured": "Featured Products",
+    "loadingFeatured": "Loading featured..."
+  },
+  "menu": {
+    "logout": "Logout",
+    "needHelp": "Need Help?"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "contactInformation": "Contact Information",
+    "shippingAddress": "Shipping Address",
+    "paymentMethod": "Payment Method",
+    "noPaymentMethods": "No payment methods available for this order.",
+    "redirectNotice": "You will be redirected securely to complete your payment.",
+    "noCountriesFound": "No countries found",
+    "genericPaymentError": "Payment failed. Please try again or use another payment method.",
+    "fields": {
+      "email": "Email",
+      "mobile": "Mobile Number",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "address": "Address",
+      "city": "City",
+      "postcode": "Postal Code",
+      "country": "Country"
+    },
+    "placeOrder": "Place Order",
+    "processing": "Processing..."
+  },
+  "merchant": {
+    "priceNotice": "All prices displayed on this website are in United Arab Emirates Dirham (AED).",
+    "policiesIntro": "By placing your order, you agree to our policies:",
+    "companyInformation": "Company Information",
+    "contactUs": "Contact Us",
+    "email": "Email:",
+    "businessHours": "Business Hours",
+    "hoursWeekdays": "Monday - Saturday: 9:30 AM - 8:30 PM",
+    "hoursSunday": "Sunday: Closed",
+    "currencyAndPayments": "Currency & Payments",
+    "sslNotice": "SSL Encrypted / Secure Checkout"
+  },
+  "summary": {
+    "orderSummary": "Order Summary",
+    "cartEmpty": "Your cart is empty.",
+    "total": "Total",
+    "yourCart": "Your Cart"
+  }
+}

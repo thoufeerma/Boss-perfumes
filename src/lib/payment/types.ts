@@ -1,7 +1,11 @@
+import type { Locale } from "@/lib/i18n/config";
+
 export interface PaymentSessionRequest {
   orderId: number;
   amount: number;
   currency: string;
+  /** Language the shopper is reading, forwarded to providers that host their own checkout. */
+  locale?: Locale;
   customerEmail: string;
   customerName?: string;
   reference?: string;
@@ -46,5 +50,5 @@ export interface PaymentProvider {
   /**
    * Evaluates if the provider is eligible for the current cart/order.
    */
-  isEligible(cartData: any): Promise<{ eligible: boolean; reason?: string }>;
+  isEligible(cartData: any, locale?: Locale): Promise<{ eligible: boolean; reason?: string }>;
 }

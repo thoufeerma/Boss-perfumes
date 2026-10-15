@@ -25,7 +25,7 @@ export function BrandSearch({ brands }: BrandSearchProps) {
           placeholder="Search brands..." 
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2 bg-[#FAF8F4] border border-[#ECE8E2] rounded-md text-[13px] text-[#111111] focus:outline-none focus:border-brand-text transition-colors"
+          className="w-full ps-9 pe-4 py-2 bg-[#FAF8F4] border border-[#ECE8E2] rounded-md text-[13px] text-[#111111] focus:outline-none focus:border-brand-text transition-colors"
         />
       </div>
 

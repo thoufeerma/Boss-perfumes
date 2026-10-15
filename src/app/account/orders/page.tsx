@@ -22,27 +22,27 @@ export default async function OrdersPage() {
       
       {orders.length > 0 ? (
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-brand-text">
+          <table className="w-full text-start text-sm text-brand-text">
             <thead className="border-b border-brand-border uppercase tracking-widest text-xs font-medium text-brand-text-muted">
               <tr>
-                <th className="pb-4 pr-4 font-normal">Order</th>
+                <th className="pb-4 pe-4 font-normal">Order</th>
                 <th className="pb-4 px-4 font-normal">Date</th>
                 <th className="pb-4 px-4 font-normal">Status</th>
                 <th className="pb-4 px-4 font-normal">Total</th>
-                <th className="pb-4 pl-4 text-right font-normal">Actions</th>
+                <th className="pb-4 ps-4 text-end font-normal">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-border">
               {orders.map((order) => (
                 <tr key={order.id} className="hover:bg-brand-bg-secondary transition-colors">
-                  <td className="py-6 pr-4">#{order.id}</td>
+                  <td className="py-6 pe-4">#{order.id}</td>
                   <td className="py-6 px-4">{new Date(order.date_created).toLocaleDateString()}</td>
                   <td className="py-6 px-4 capitalize">{order.status}</td>
                   <td className="py-6 px-4">
                     <span dangerouslySetInnerHTML={{ __html: order.currency_symbol }} />
                     {parseFloat(order.total).toFixed(2)} for {order.line_items?.reduce((acc: number, item: any) => acc + item.quantity, 0) || 0} items
                   </td>
-                  <td className="py-6 pl-4 text-right">
+                  <td className="py-6 ps-4 text-end">
                     <Link href={`/account/orders/${order.id}`} className="inline-block bg-[#111111] text-white py-2 px-6 text-xs tracking-widest uppercase hover:bg-black transition-colors">
                       View
                     </Link>

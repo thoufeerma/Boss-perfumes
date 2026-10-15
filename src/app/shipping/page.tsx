@@ -25,7 +25,7 @@ export default function ShippingPage() {
           <p className="mb-6">
             We offer fast and reliable shipping across the United Arab Emirates.
           </p>
-          <ul className="list-disc pl-6 mt-2 mb-6">
+          <ul className="list-disc ps-6 mt-2 mb-6">
             <li><strong>Standard Delivery:</strong> 2-3 business days.</li>
             <li><strong>Express Delivery:</strong> Available in select areas (Dubai, Sharjah) for next-day delivery if ordered before our daily cutoff time.</li>
           </ul>

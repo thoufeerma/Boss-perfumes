@@ -1,31 +1,25 @@
 /**
- * Single source of truth for the language the storefront speaks.
+ * Payment-facing strings, resolved per request rather than per build.
  *
  * Tabby's QA flagged that payment-method labels and Tabby's cancel / failure /
- * pre-scoring messages were rendered in English and Arabic at once, on a site that
- * has no language switcher. Everything customer-facing that relates to Tabby now
- * resolves through here, so exactly one language is shown and the same value is
- * sent as Tabby's `lang` parameter.
+ * pre-scoring messages were rendered in English and Arabic at once. These now resolve
+ * through one locale, and the same locale is sent as Tabby's `lang` so their hosted
+ * checkout matches the language the shopper is reading.
  *
- * The Arabic column is kept deliberately: UAE consumer protection rules
- * (Federal Law 15/2020 and Cabinet Decision 66/2023) require Arabic on
- * e-commerce sites, so this is the seed for real bilingual support rather than
- * something to be deleted. Flip NEXT_PUBLIC_SITE_LOCALE once Arabic is complete.
+ * Kept free of `server-only` and of async loading on purpose: the payment providers,
+ * the API routes and the checkout page all read these synchronously, and the set is
+ * small enough that bundling both languages costs nothing. Bulk UI copy lives in
+ * ./dictionaries instead, which is server-only and loaded on demand.
  */
 
-export const LOCALES = ["en", "ar"] as const;
-export type Locale = (typeof LOCALES)[number];
-
-function resolveLocale(): Locale {
-  const configured = process.env.NEXT_PUBLIC_SITE_LOCALE;
-  return LOCALES.includes(configured as Locale) ? (configured as Locale) : "en";
-}
-
-/** The one language the storefront currently presents. */
-export const SITE_LOCALE: Locale = resolveLocale();
+import { DEFAULT_LOCALE, type Locale } from "./config";
 
 const dictionaries = {
   en: {
+    methods: {
+      card: { name: "Credit / Debit Card", description: "Visa • Mastercard" },
+      telr: { name: "Secure Payment", description: "Secure UAE Payment Gateway" },
+    },
     tabby: {
       methodName: "Pay later with Tabby",
       methodDescription: "Split your payment into 4 interest-free installments",
@@ -43,6 +37,10 @@ const dictionaries = {
     },
   },
   ar: {
+    methods: {
+      card: { name: "بطاقة ائتمان / خصم", description: "فيزا • ماستركارد" },
+      telr: { name: "دفع آمن", description: "بوابة دفع إماراتية آمنة" },
+    },
     tabby: {
       methodName: "ادفع لاحقًا عبر تابي",
       methodDescription: "قسّم مدفوعاتك على 4 أقساط بدون فوائد",
@@ -60,5 +58,9 @@ const dictionaries = {
   },
 } as const;
 
-/** Messages for the active locale. */
-export const messages = dictionaries[SITE_LOCALE];
+export type PaymentMessages = (typeof dictionaries)[Locale];
+
+/** Payment strings for one locale. Unknown locales fall back rather than throwing. */
+export function paymentMessages(locale: Locale = DEFAULT_LOCALE): PaymentMessages {
+  return dictionaries[locale] ?? dictionaries[DEFAULT_LOCALE];
+}
