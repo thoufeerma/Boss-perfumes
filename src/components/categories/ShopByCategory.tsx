@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getCategories, type WCCategory } from "@/api/categories";
+import { getLocale } from "@/lib/i18n/server";
+import { translateCategoryName } from "@/lib/i18n/products";
 
 const CATEGORY_IMAGES: Record<string, string> = {
   men: "/category/men1.webp",
@@ -12,11 +14,14 @@ const CATEGORY_IMAGES: Record<string, string> = {
 interface CategoryCardProps {
   category: WCCategory;
   fallbackImage: string;
+  locale: "en" | "ar";
 }
 
-function CategoryCard({ category, fallbackImage }: CategoryCardProps) {
+function CategoryCard({ category, fallbackImage, locale }: CategoryCardProps) {
   // Prioritize local hardcoded images, then WC images, then fallback
   const imageSrc = CATEGORY_IMAGES[category.slug] || category.image?.src || fallbackImage;
+  const localizedName = translateCategoryName(category.name, locale);
+  const shopNowText = locale === "ar" ? "تسوق الآن" : "Shop Now";
   
   return (
     <Link 
@@ -27,7 +32,7 @@ function CategoryCard({ category, fallbackImage }: CategoryCardProps) {
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#FAF8F4]">
         <Image
           src={imageSrc}
-          alt={category.name}
+          alt={localizedName}
           fill
           className="object-cover object-center transition-transform duration-[600ms] ease-out group-hover:scale-[1.03]"
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 50vw, 25vw"
@@ -39,11 +44,11 @@ function CategoryCard({ category, fallbackImage }: CategoryCardProps) {
       {/* ~20% Text Area */}
       <div className="flex flex-col items-center justify-center p-4 md:p-6 bg-white shrink-0">
         <h3 className="text-lg md:text-xl lg:text-2xl font-serif text-[#111111] mb-2 tracking-wide text-center">
-          {category.name}
+          {localizedName}
         </h3>
         
         <span className="text-[10px] md:text-xs font-medium tracking-widest uppercase text-gray-500 relative after:absolute after:-bottom-[2px] after:left-0 after:w-full after:h-[1px] after:bg-brand-text after:scale-x-0 after:origin-left group-hover:after:scale-x-100 after:transition-transform after:duration-300 group-hover:text-brand-text transition-colors duration-300">
-          Shop Now
+          {shopNowText}
         </span>
       </div>
     </Link>
@@ -51,6 +56,7 @@ function CategoryCard({ category, fallbackImage }: CategoryCardProps) {
 }
 
 export async function ShopByCategory() {
+  const locale = await getLocale();
   const categories = await getCategories({ hide_empty: "false", per_page: "100" });
   
   const targetSlugs = ["men", "women", "unisex", "combos"];
@@ -65,11 +71,13 @@ export async function ShopByCategory() {
     };
   });
 
+  const heading = locale === "ar" ? "تسوق حسب الفئة" : "Shop by Category";
+
   return (
     <section className="py-8 md:py-12 bg-brand-surface px-6 lg:px-12">
       <div className="mx-auto max-w-[1600px]">
         <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-5xl font-serif text-brand-text mb-4">Shop by Category</h2>
+          <h2 className="text-3xl md:text-5xl font-serif text-brand-text mb-4">{heading}</h2>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
@@ -78,6 +86,7 @@ export async function ShopByCategory() {
               key={category.id} 
               category={category as WCCategory} 
               fallbackImage={CATEGORY_IMAGES[category.slug] || "/images/product-placeholder.png"}
+              locale={locale}
             />
           ))}
         </div>

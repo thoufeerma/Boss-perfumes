@@ -9,10 +9,12 @@ import { searchProductsAction, getFeaturedProductsAction } from "@/actions/searc
 import type { WCProduct } from "@/api/products";
 import Image from "next/image";
 import Link from "next/link";
-import { useT } from "@/components/i18n/I18nProvider";
+import { useT, useLocale } from "@/components/i18n/I18nProvider";
+import { translateProductName, translateCategoryName } from "@/lib/i18n/products";
 
 export function SearchDrawer() {
   const t = useT();
+  const locale = useLocale();
   const { isSearchOpen, setSearchOpen } = useUIStore();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<WCProduct[]>([]);
@@ -92,7 +94,9 @@ export function SearchDrawer() {
   };
 
   const renderProduct = (product: WCProduct) => {
-    const category = product.categories?.[0]?.name;
+    const rawCategory = product.categories?.[0]?.name;
+    const category = rawCategory ? translateCategoryName(rawCategory, locale) : null;
+    const localizedName = translateProductName(product.name, locale);
     const brandAttr = product.attributes?.find(attr => attr.name.toLowerCase() === 'brand');
     const brand = brandAttr ? brandAttr.options[0] : null;
     
@@ -107,7 +111,7 @@ export function SearchDrawer() {
           {product.images?.[0] ? (
             <Image 
               src={product.images[0].src} 
-              alt={product.images[0].alt || product.name} 
+              alt={product.images[0].alt || localizedName} 
               fill 
               className="object-cover group-hover:scale-105 transition-transform duration-300" 
               sizes="64px" 
@@ -118,7 +122,7 @@ export function SearchDrawer() {
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="font-serif text-brand-text truncate group-hover:text-brand-accent transition-colors">
-            {product.name}
+            {localizedName}
           </h4>
           {(brand || category) && (
             <p className="text-xs text-brand-text-muted mt-1 uppercase tracking-wider truncate">

@@ -1,19 +1,28 @@
 import { getProducts } from "@/api/products";
 import { ProductCarousel } from "./ProductCarousel";
 import Link from "next/link";
+import { getLocale } from "@/lib/i18n/server";
 
 export async function NewArrivals() {
+  const locale = await getLocale();
+  const isAr = locale === "ar";
   // Fetch latest products
   const products = await getProducts({ per_page: "8" });
+
+  const heading = isAr ? "الأكثر مبيعاً" : "Best Sellers";
+  const subtitle = isAr 
+    ? "اكتشف إبداعات العطور الأكثر مبيعاً والمبتكرة بأيدي أمهر خبراء العطور." 
+    : "Experience the best-selling masterpieces crafted by our master perfumers.";
+  const viewAll = isAr ? "عرض الكل" : "View All";
 
   return (
     <section className="py-8 md:py-12 bg-brand-surface px-6 lg:px-12">
       <div className="mx-auto max-w-[1600px]">
         <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-6">
           <div>
-            <h2 className="text-4xl md:text-5xl font-serif text-brand-text mb-4">Best Sellers</h2>
-            <p className="text-brand-text-muted text-lg max-w-xl">
-              Experience the best-selling masterpieces crafted by our master perfumers.
+            <h2 className="text-4xl md:text-5xl font-serif text-brand-text mb-4">{heading}</h2>
+            <p className="text-brand-text-muted text-lg max-w-xl leading-relaxed">
+              {subtitle}
             </p>
           </div>
           <Link 
@@ -21,7 +30,7 @@ export async function NewArrivals() {
             className="group inline-flex items-center gap-4 text-xs font-medium tracking-widest uppercase text-brand-text hover:text-brand-accent transition-colors duration-300"
           >
             <span className="relative after:absolute after:-bottom-1 after:left-0 after:w-full after:h-[1px] after:bg-brand-text group-hover:after:bg-brand-accent transition-colors duration-300">
-              View All
+              {viewAll}
             </span>
           </Link>
         </div>

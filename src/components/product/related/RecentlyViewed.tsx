@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { type WCProduct } from "@/api/products";
 import { ProductCarousel } from "@/components/collection/ProductCarousel";
+import { useT } from "@/components/i18n/I18nProvider";
 
 const RECENTLY_VIEWED_KEY = "boss_perfumes_recently_viewed";
 const MAX_ITEMS = 8;
@@ -12,6 +13,7 @@ interface RecentlyViewedProps {
 }
 
 export function RecentlyViewed({ currentProduct }: RecentlyViewedProps) {
+  const t = useT();
   const [viewedProducts, setViewedProducts] = useState<WCProduct[]>([]);
 
   useEffect(() => {
@@ -47,7 +49,7 @@ export function RecentlyViewed({ currentProduct }: RecentlyViewedProps) {
     <section className="py-16 lg:py-24 border-t border-[#ECE8E2] bg-[#FAF8F4]">
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
         <h2 className="text-3xl lg:text-4xl font-serif text-center mb-12 text-[#111111]">
-          Recently Viewed
+          {t.product.recentlyViewed}
         </h2>
         <ProductCarousel products={viewedProducts} />
       </div>

@@ -3,6 +3,7 @@
 import { Heart } from "lucide-react";
 import { useWishlist } from "@/hooks/useWishlist";
 import { cn } from "@/lib/utils";
+import { useT } from "@/components/i18n/I18nProvider";
 
 interface WishlistButtonProps {
   productId: number;
@@ -12,6 +13,7 @@ interface WishlistButtonProps {
 
 export function WishlistButton({ productId, className, iconOnly = false }: WishlistButtonProps) {
   const { isWishlisted, isToggling, toggle } = useWishlist(productId);
+  const t = useT();
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -23,7 +25,7 @@ export function WishlistButton({ productId, className, iconOnly = false }: Wishl
     return (
       <button 
         className={cn("flex items-center justify-center rounded-full transition-all duration-300", className)}
-        aria-label="Add to wishlist"
+        aria-label={t.product.addToWishlist}
         onClick={handleWishlist}
         disabled={isToggling}
       >
@@ -53,7 +55,7 @@ export function WishlistButton({ productId, className, iconOnly = false }: Wishl
         strokeWidth={1.5} 
       />
       <span className="hidden sm:inline">
-        {isWishlisted ? 'Saved' : 'Wishlist'}
+        {isWishlisted ? t.product.saved : t.product.wishlist}
       </span>
     </button>
   );

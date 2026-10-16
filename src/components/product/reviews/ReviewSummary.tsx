@@ -1,4 +1,7 @@
+"use client";
+
 import { Star } from "lucide-react";
+import { useT } from "@/components/i18n/I18nProvider";
 
 interface ReviewSummaryProps {
   rating: string | number | undefined;
@@ -6,6 +9,7 @@ interface ReviewSummaryProps {
 }
 
 export function ReviewSummary({ rating, count }: ReviewSummaryProps) {
+  const t = useT();
   if (!rating || !count || count === 0) return null;
 
   const numericRating = typeof rating === "string" ? parseFloat(rating) : rating;
@@ -23,7 +27,7 @@ export function ReviewSummary({ rating, count }: ReviewSummaryProps) {
         ))}
       </div>
       <span className="text-sm font-medium text-[#111111]">{numericRating.toFixed(1)}</span>
-      <span className="text-sm text-gray-500">({count} reviews)</span>
+      <span className="text-sm text-gray-500">({count} {t.product.reviews})</span>
     </div>
   );
 }

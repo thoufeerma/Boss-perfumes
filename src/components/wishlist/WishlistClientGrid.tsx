@@ -9,8 +9,12 @@ import { AddToCartButton } from "@/components/product/purchase/AddToCartButton";
 import { RemoveWishlistButton } from "@/components/wishlist/RemoveWishlistButton";
 import { ProductPrice } from "@/components/product/ProductPrice";
 import { Loader2 } from "lucide-react";
+import { useT, useLocale } from "@/components/i18n/I18nProvider";
+import { translateProductName } from "@/lib/i18n/products";
 
 export function WishlistClientGrid() {
+  const t = useT();
+  const locale = useLocale();
   const { wishlistIds, isInitialized, initialize } = useWishlistStore();
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,7 +43,6 @@ export function WishlistClientGrid() {
       const fetchedProducts = await getProductsByIds(wishlistIds);
       
       if (isMounted) {
-        // Maintain the order of wishlistIds if desired, or just set the fetched array
         setProducts(fetchedProducts);
         setIsLoading(false);
       }
@@ -63,9 +66,9 @@ export function WishlistClientGrid() {
   if (wishlistIds.length === 0 || products.length === 0) {
     return (
       <div className="text-center py-12 bg-brand-bg-secondary border border-brand-border">
-        <p className="text-brand-text-muted mb-4 font-light">Your wishlist is currently empty.</p>
+        <p className="text-brand-text-muted mb-4 font-light">{t.product.emptyWishlist}</p>
         <Link href="/collections" className="inline-block bg-[#111111] text-white py-3 px-8 text-sm font-medium tracking-widest uppercase hover:bg-black transition-colors">
-          Discover Fragrances
+          {t.product.discoverFragrances}
         </Link>
       </div>
     );
@@ -73,32 +76,35 @@ export function WishlistClientGrid() {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {products.map((product) => (
-        <div key={product.id} className="border border-brand-border p-4 group flex flex-col h-full">
-          <Link href={`/product/${product.slug}`} className="block relative aspect-square mb-4 bg-brand-bg-secondary overflow-hidden">
-            {product.images && product.images[0] ? (
-              <Image 
-                src={product.images[0].src} 
-                alt={product.name} 
-                fill 
-                className="object-cover transition-transform duration-500 group-hover:scale-105" 
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-brand-text-muted">No Image</div>
-            )}
-          </Link>
-          <div className="flex-1 flex flex-col text-center">
-            <h3 className="text-sm font-medium text-brand-text mb-1 truncate">{product.name}</h3>
-            <div className="mb-4">
-              <ProductPrice product={product} />
-            </div>
-            <div className="mt-auto flex flex-col gap-2">
-              <AddToCartButton productId={product.id} quantity={1} disabled={product.stock_status === 'outofstock'} />
-              <RemoveWishlistButton productId={product.id} />
+      {products.map((product) => {
+        const localizedName = translateProductName(product.name, locale);
+        return (
+          <div key={product.id} className="border border-brand-border p-4 group flex flex-col h-full bg-white">
+            <Link href={`/product/${product.slug}`} className="block relative aspect-square mb-4 bg-brand-bg-secondary overflow-hidden">
+              {product.images && product.images[0] ? (
+                <Image 
+                  src={product.images[0].src} 
+                  alt={localizedName} 
+                  fill 
+                  className="object-cover transition-transform duration-500 group-hover:scale-105" 
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-brand-text-muted">{t.product.noImage}</div>
+              )}
+            </Link>
+            <div className="flex-1 flex flex-col text-center">
+              <h3 className="text-sm font-medium text-brand-text mb-1 truncate">{localizedName}</h3>
+              <div className="mb-4">
+                <ProductPrice product={product} />
+              </div>
+              <div className="mt-auto flex flex-col gap-2">
+                <AddToCartButton productId={product.id} quantity={1} disabled={product.stock_status === 'outofstock'} />
+                <RemoveWishlistButton productId={product.id} />
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

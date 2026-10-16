@@ -4,6 +4,8 @@ import Link from "next/link";
 import { type WCCategory } from "@/api/categories";
 import { cn } from "@/lib/utils";
 import { FilterGroup } from "./FilterGroup";
+import { useT, useLocale } from "@/components/i18n/I18nProvider";
+import { translateCategoryName } from "@/lib/i18n/products";
 
 interface CategoryNavigationProps {
   categories: WCCategory[];
@@ -11,13 +13,16 @@ interface CategoryNavigationProps {
 }
 
 export function CategoryNavigation({ categories, selectedCategorySlug }: CategoryNavigationProps) {
+  const t = useT();
+  const locale = useLocale();
+
   // Filter out 'uncategorized' and optionally empty categories
   const validCategories = categories.filter(
     (c) => c.slug.toLowerCase() !== "uncategorized" && c.count > 0
   );
 
   return (
-    <FilterGroup title="Categories" defaultExpanded={true}>
+    <FilterGroup title={t.product.categories} defaultExpanded={true}>
       <div className="space-y-3">
         {/* All Collections Option */}
         <Link 
@@ -45,12 +50,14 @@ export function CategoryNavigation({ categories, selectedCategorySlug }: Categor
               !selectedCategorySlug ? "font-bold text-[#111111]" : "text-gray-500 group-hover:text-[#111111]"
             )}
           >
-            All Collections
+            {t.product.allCollections}
           </span>
         </Link>
 
         {validCategories.map((category) => {
           const isSelected = selectedCategorySlug === category.slug;
+          const localizedCategoryName = translateCategoryName(category.name, locale);
+
           return (
             <Link 
               key={category.id} 
@@ -78,7 +85,7 @@ export function CategoryNavigation({ categories, selectedCategorySlug }: Categor
                   isSelected ? "font-bold text-[#111111]" : "text-gray-500 group-hover:text-[#111111]"
                 )}
               >
-                {category.name}
+                {localizedCategoryName}
               </span>
               <span className="text-[11px] text-gray-400 font-medium">
                 {category.count}

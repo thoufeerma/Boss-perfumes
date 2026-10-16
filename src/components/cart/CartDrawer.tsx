@@ -9,10 +9,12 @@ import { X, Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { TabbyPromo } from "@/components/payment/TabbyPromo";
-import { useT } from "@/components/i18n/I18nProvider";
+import { useT, useLocale } from "@/components/i18n/I18nProvider";
+import { translateProductName } from "@/lib/i18n/products";
 
 export function CartDrawer() {
   const t = useT();
+  const locale = useLocale();
   const { isCartOpen, setCartOpen } = useUIStore();
   const { cart, cartCount } = useCartContext();
   const { remove, update, isUpdating } = useCart();
@@ -64,6 +66,7 @@ export function CartDrawer() {
               // WooCommerce Store API returns a permalink for cart items, e.g., "https://store.com/product/my-slug/"
               // We extract the slug from the permalink to link to our headless frontend route.
               const slug = item.permalink ? item.permalink.split('/').filter(Boolean).pop() : '';
+              const localizedName = translateProductName(item.name, locale);
               
               return (
               <div key={item.key} className="flex gap-6 py-6 border-b border-brand-border first:pt-0">
@@ -74,7 +77,7 @@ export function CartDrawer() {
                 >
                   <Image
                     src={item.images?.[0]?.src || "/images/product-placeholder.png"}
-                    alt={item.name}
+                    alt={localizedName}
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                     sizes="96px"
@@ -88,7 +91,7 @@ export function CartDrawer() {
                         onClick={() => setCartOpen(false)}
                         className="hover:opacity-70 transition-opacity"
                       >
-                        <h3 className="font-serif text-brand-text text-lg">{item.name}</h3>
+                        <h3 className="font-serif text-brand-text text-lg">{localizedName}</h3>
                       </Link>
                       <span className="text-xs uppercase tracking-widest text-brand-text-muted">{item.sku}</span>
                     </div>

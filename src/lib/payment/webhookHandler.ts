@@ -11,6 +11,8 @@ export async function processWebhook(request: NextRequest, providerId?: string) 
     if (!detectedProviderId) {
       if (request.headers.get("cko-signature")) {
         detectedProviderId = "checkoutcom";
+      } else if (request.headers.get("x-tabby-webhook-secret")) {
+        detectedProviderId = "tabby";
       }
       // Add Telr detection here later if needed
     }

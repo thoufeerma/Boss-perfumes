@@ -3,11 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { type WCProduct } from "@/api/products";
-import { Heart, ShoppingCart } from "lucide-react";
-import { cn, formatPrice } from "@/lib/utils";
-
+import { cn } from "@/lib/utils";
+import { useLocale } from "@/components/i18n/I18nProvider";
+import { translateProductName } from "@/lib/i18n/products";
 import { WishlistButton } from "./purchase/WishlistButton";
-function ProductImage({ product }: { product: WCProduct }) {
+import { ProductPrice } from "./ProductPrice";
+import { AddToCartButton } from "./purchase/AddToCartButton";
+
+function ProductImage({ product, localizedName }: { product: WCProduct; localizedName: string }) {
   const imageSrc = product.images?.[0]?.src || "/images/product-placeholder.png";
   const hoverImageSrc = product.images?.[1]?.src || imageSrc;
   const hasGallery = product.images && product.images.length > 1;
@@ -16,7 +19,7 @@ function ProductImage({ product }: { product: WCProduct }) {
     <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#FAF8F4] rounded-t-[17px]">
       <Image
         src={imageSrc}
-        alt={product.name}
+        alt={localizedName}
         fill
         className={cn(
           "object-contain object-center p-8 transition-all duration-250 mix-blend-multiply",
@@ -27,7 +30,7 @@ function ProductImage({ product }: { product: WCProduct }) {
       {hasGallery && (
         <Image
           src={hoverImageSrc}
-          alt={product.name}
+          alt={localizedName}
           fill
           className="object-contain object-center p-8 absolute inset-0 opacity-0 transition-all duration-250 scale-95 group-hover:scale-[1.03] group-hover:opacity-100 mix-blend-multiply"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
@@ -37,21 +40,22 @@ function ProductImage({ product }: { product: WCProduct }) {
   );
 }
 
-import { ProductPrice } from "./ProductPrice";
-import { AddToCartButton } from "./purchase/AddToCartButton";
 export function ProductCard({ product }: { product: WCProduct }) {
+  const locale = useLocale();
+  const localizedName = translateProductName(product.name, locale);
+
   return (
     <div className="group relative flex flex-col h-full bg-white rounded-[18px] border border-[#ECE8E2] hover:border-[#D0C9C0] overflow-hidden p-5 md:p-6 transition-all duration-250 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
       <WishlistButton 
         productId={product.id} 
         iconOnly 
-        className="absolute top-5 right-5 z-10 w-[30px] h-[30px] bg-white/50 backdrop-blur-sm hover:bg-white text-brand-text"
+        className="absolute top-5 end-5 z-10 w-[30px] h-[30px] bg-white/50 backdrop-blur-sm hover:bg-white text-brand-text"
       />
       <Link href={`/product/${product.slug}`} className="flex flex-col flex-grow">
-        <ProductImage product={product} />
+        <ProductImage product={product} localizedName={localizedName} />
         <div className="flex flex-col flex-grow mt-5">
           <h3 className="text-[16px] md:text-[18px] font-serif font-medium text-[#111111] line-clamp-2 leading-snug md:leading-[1.4]">
-            {product.name}
+            {localizedName}
           </h3>
           <div className="mt-auto">
             <ProductPrice product={product} />

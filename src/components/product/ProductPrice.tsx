@@ -1,7 +1,11 @@
+"use client";
+
 import { type WCProduct } from "@/api/products";
 import { formatPrice } from "@/lib/utils";
+import { useT } from "@/components/i18n/I18nProvider";
 
 export function ProductPrice({ product }: { product: WCProduct }) {
+  const t = useT();
   const currency = 'AED';
 
   const hasSale = product.on_sale && product.regular_price && product.sale_price;
@@ -16,7 +20,7 @@ export function ProductPrice({ product }: { product: WCProduct }) {
           <span className="text-[1.15rem] font-bold text-[#111111] tracking-tight">{formatPrice(product.sale_price, currency)}</span>
           <div className="flex items-center gap-2">
             <span className="text-[13px] font-medium text-gray-400 opacity-70 line-through decoration-1">{formatPrice(product.regular_price, currency)}</span>
-            <span className="text-[11px] font-medium text-emerald-600 tracking-wide">{discountPercent}% OFF</span>
+            <span className="text-[11px] font-medium text-emerald-600 tracking-wide">{discountPercent}% {t.product.off}</span>
           </div>
         </>
       ) : (

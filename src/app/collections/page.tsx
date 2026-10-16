@@ -4,11 +4,23 @@ import { CollectionLayout } from "@/components/collection/CollectionLayout";
 import { FilteredProductLoader } from "@/components/collection/FilteredProductLoader";
 import { ProductGridSkeleton } from "@/components/collection/CollectionSkeleton";
 import { Suspense } from "react";
+import { getLocale } from "@/lib/i18n/server";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import type { Metadata } from "next";
 
-export const metadata = {
-  title: "All Collections | Boss Perfumes",
-  description: "Explore our complete collection of luxury fragrances.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  if (locale === "ar") {
+    return {
+      title: "جميع المجموعات | Boss Perfumes",
+      description: "استكشف مجموعتنا الكاملة من العطور الفاخرة.",
+    };
+  }
+  return {
+    title: "All Collections | Boss Perfumes",
+    description: "Explore our complete collection of luxury fragrances.",
+  };
+}
 
 interface CollectionsPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -16,6 +28,8 @@ interface CollectionsPageProps {
 
 export default async function CollectionsPage({ searchParams }: CollectionsPageProps) {
   const resolvedParams = await searchParams as Record<string, string | undefined>;
+  const locale = await getLocale();
+  const t = getDictionary(locale);
   
   // Fetch filter metadata (cached aggressively)
   const [categories, brands, sizes, scents] = await Promise.all([
@@ -27,7 +41,7 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
 
   return (
     <CollectionLayout 
-      title="All Collections" 
+      title={t.product.allCollections} 
       categories={categories}
       brands={brands}
       sizes={sizes}

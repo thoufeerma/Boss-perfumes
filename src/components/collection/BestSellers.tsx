@@ -5,12 +5,16 @@ import { ProductCard } from "../product/ProductCard";
 import Image from "next/image";
 import Link from "next/link";
 import { ACFHomepageData } from "@/lib/wordpress";
+import { getLocale } from "@/lib/i18n/server";
 
 interface BestSellersProps {
   data?: ACFHomepageData | null;
 }
 
 export async function BestSellers({ data }: BestSellersProps = {}) {
+  const locale = await getLocale();
+  const isAr = locale === "ar";
+
   // Fetch "combos" category products dynamically
   const category = await getCategoryBySlug("combos");
   let products = [];
@@ -27,13 +31,20 @@ export async function BestSellers({ data }: BestSellersProps = {}) {
 
   if (!products || products.length === 0) return null;
 
-  const leftLabel = data?.combo_left_label || "Combo Collection";
-  const leftHeading = data?.combo_left_heading || "More Scents,\nBetter Value";
-  const leftDescription = data?.combo_left_description || "Explore exclusive perfume combos featuring your favorite fragrances, thoughtfully paired to give you more for less.";
-  const leftButtonText = data?.combo_left_button_text || "Shop Combos →";
+  const sectionTitle = isAr ? "مجموعة الهدايا الفاخرة" : "Our Gift Collection";
+  const sectionSubtitle = isAr 
+    ? "أطقم وباقات هدايا فاخرة مختارة بعناية لكل احتفال ومناسبة خاصة." 
+    : "Curated luxury gift sets for every celebration and special occasion.";
+
+  const leftLabel = isAr ? "مجموعة الباقات" : (data?.combo_left_label || "Combo Collection");
+  const leftHeading = isAr ? "عطور أكثر،\nوقيمة أفضل" : (data?.combo_left_heading || "More Scents,\nBetter Value");
+  const leftDescription = isAr 
+    ? "استكشف باقات العطور الحصرية التي تجمع بين عطورك المفضلة والمختارة بعناية لتقديم تجربة استثنائية." 
+    : (data?.combo_left_description || "Explore exclusive perfume combos featuring your favorite fragrances, thoughtfully paired to give you more for less.");
+  const leftButtonText = isAr ? "تسوق الباقات ←" : (data?.combo_left_button_text || "Shop Combos →");
   const leftButtonLink = data?.combo_left_button_link || "/collections/combos";
   const leftImageUrl = data?.combo_left_background_image?.url || "/images/luxury-gifting-banner.png";
-  const leftImageAlt = data?.combo_left_background_image?.alt || "Luxury Gifts";
+  const leftImageAlt = isAr ? "هدايا فاخرة" : (data?.combo_left_background_image?.alt || "Luxury Gifts");
 
   return (
     <section className="py-20 bg-brand-bg-secondary px-6 lg:px-12 border-y border-brand-border">
@@ -41,9 +52,9 @@ export async function BestSellers({ data }: BestSellersProps = {}) {
         
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-brand-text mb-6">Our Gift Collection</h2>
-          <p className="text-brand-text-muted text-lg max-w-2xl mx-auto">
-            Curated luxury gift sets for every celebration and special occasion.
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-brand-text mb-6">{sectionTitle}</h2>
+          <p className="text-brand-text-muted text-lg max-w-2xl mx-auto leading-relaxed">
+            {sectionSubtitle}
           </p>
         </div>
 

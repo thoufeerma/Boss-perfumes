@@ -1,4 +1,7 @@
+"use client";
+
 import { formatPrice } from "@/lib/utils";
+import { useT } from "@/components/i18n/I18nProvider";
 
 interface PriceBlockProps {
   price: string;
@@ -9,6 +12,7 @@ interface PriceBlockProps {
 }
 
 export function PriceBlock({ price, regularPrice, salePrice, onSale, currency = 'AED' }: PriceBlockProps) {
+  const t = useT();
   const hasSale = onSale && regularPrice && salePrice;
   const regular = parseFloat(regularPrice || "0");
   const sale = parseFloat(salePrice || "0");
@@ -28,7 +32,7 @@ export function PriceBlock({ price, regularPrice, salePrice, onSale, currency = 
       </div>
       {hasSale && (
         <span className="text-sm font-medium text-emerald-600 tracking-wide">
-          Save {discountPercent}% ({formatPrice((regular - sale).toString(), currency)})
+          {t.product.save} {discountPercent}% ({formatPrice((regular - sale).toString(), currency)})
         </span>
       )}
     </div>

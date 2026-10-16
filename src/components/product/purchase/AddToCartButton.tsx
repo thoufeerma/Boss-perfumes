@@ -3,6 +3,7 @@
 import { ShoppingCart, Loader2 } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { cn } from "@/lib/utils";
+import { useT } from "@/components/i18n/I18nProvider";
 
 interface AddToCartButtonProps {
   productId: number;
@@ -13,12 +14,19 @@ interface AddToCartButtonProps {
 
 export function AddToCartButton({ productId, quantity, disabled, className }: AddToCartButtonProps) {
   const { add, isAdding } = useCart();
+  const t = useT();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     if (disabled || isAdding) return;
     add(productId, quantity);
   };
+
+  const buttonText = isAdding 
+    ? t.product.adding 
+    : disabled 
+    ? t.product.outOfStock 
+    : t.product.addToBag;
 
   return (
     <button 
@@ -34,7 +42,7 @@ export function AddToCartButton({ productId, quantity, disabled, className }: Ad
       ) : (
         <ShoppingCart className="w-4 h-4" strokeWidth={1.5} />
       )}
-      {isAdding ? "Adding..." : "Add to Bag"}
+      {buttonText}
     </button>
   );
 }

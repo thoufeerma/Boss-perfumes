@@ -1,9 +1,88 @@
-export const metadata = {
-  title: "Refund & Return Policy | Boss Perfumes",
-  description: "Refund and return policy for Boss Perfumes.",
-};
+import { getLocale } from "@/lib/i18n/server";
+import type { Metadata } from "next";
 
-export default function RefundPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  if (locale === "ar") {
+    return {
+      title: "سياسة الاسترجاع والاسترداد | Boss Perfumes",
+      description: "سياسة الاسترجاع والاسترداد لمنتجات العطور في Boss Perfumes.",
+    };
+  }
+  return {
+    title: "Refund & Return Policy | Boss Perfumes",
+    description: "Refund and return policy for Boss Perfumes.",
+  };
+}
+
+export default async function RefundPage() {
+  const locale = await getLocale();
+  const isAr = locale === "ar";
+
+  if (isAr) {
+    return (
+      <div className="pt-32 pb-24 px-6 lg:px-12 bg-brand-bg min-h-screen">
+        <div className="mx-auto max-w-3xl">
+          <h1 className="text-3xl md:text-4xl font-serif text-brand-text mb-12 text-center">
+            سياسة الاسترجاع والاسترداد
+          </h1>
+
+          <div className="prose prose-brand max-w-none text-brand-text-muted leading-relaxed">
+            <p className="mb-6">
+              في <strong>شركة بوس للتجارة العامة ذ.م.م (Boss General Trading LLC)</strong>، نحرص كل الحرص على أن تكونوا راضين تماماً عن كل عطر تشترونه منا. إذا لم تكن راضياً عن طلبك لأي سبب، فنحن هنا لمساعدتك. يُرجى مراجعة سياستنا المعتمدة لعمليات الاسترجاع واسترداد الأموال الخاصة بمنتجات العطور.
+            </p>
+
+            <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">1. شروط الأهلية للاسترجاع</h2>
+            <p className="mb-6">
+              نظراً لطبيعة منتجات العطور ومستحضرات التجميل، فإننا نقبل فقط استرجاع المنتجات التي تكون غير مستخدمة، وغير مفتوحة، وبحالتها الأصلية السليمة داخل غلافها الأصلي مع بقاء جميع الأختام وشريط الحماية سليماً تماماً. لا يمكن إرجاع العطور المفتوحة أو المستخدمة لأسباب تتعلق بالصحة والسلامة العامة.
+            </p>
+
+            <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">2. المدة المحددة لتقديم الطلب</h2>
+            <p className="mb-6">
+              يحق لكم تقديم طلب استرجاع أو استبدال خلال <strong>14 يوماً</strong> من تاريخ استلام الطلب. ولن نتمكن من قبول أي طلبات يتم تقديمها بعد انقضاء هذه المدة (14 يوماً).
+            </p>
+
+            <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">3. المنتجات التالفة أو غير المطابقة</h2>
+            <p className="mb-6">
+              إذا استلمتم منتجاً تالفاً أو غير مطابق لطلبكم، يُرجى التواصل معنا فور استلام الشحنة مباشرة. سنقوم بترتيب استبدال فوري أو رد كامل المبلغ المدفوع شاملاً أي رسوم شحن ترتبت على ذلك. يُرجى تزويدنا بصور فوتوغرافية واضحة تثبت حالة التلف لمساعدتنا في سرعة معالجة طلبكم.
+            </p>
+
+            <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">4. المنتجات غير القابلة للإرجاع</h2>
+            <p className="mb-6">
+              المنتجات التالية غير قابلة للإرجاع أو الاستبدال نهائياً:
+            </p>
+            <ul className="list-disc ps-6 mt-2 mb-6 space-y-1">
+              <li>العطور والمستحضرات المفتوحة أو المستخدمة كلياً أو جزئياً.</li>
+              <li>المنتجات التي تم نزع أو إتلاف أختامها الأمنية أو غلاف السلوفان الأصلي.</li>
+              <li>المنتجات المشتراة ضمن عروض التصفية النهائية الخاصة.</li>
+            </ul>
+
+            <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">5. إجراءات معالجة استرداد الأموال</h2>
+            <p className="mb-6">
+              بمجرد استلامنا للمنتج المرتجع وفحصه من قبل فريق الجودة، سنقوم بإشعاركم بنتيجة فحص المنتج بالموافقة أو الرفض. وفي حال الموافقة، ستتم معالجة المبلغ المسترد تلقائياً وإعادته إلى وسيلة الدفع الأصلية ذاتها (فيزا أو ماستركارد) خلال عدد من أيام العمل بحسب السياسات المتبعة لدى البنك المصدر لبطاقتكم.
+            </p>
+
+            <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">6. تكاليف الشحن للإرجاع</h2>
+            <p className="mb-6">
+              يتحمل العميل تكلفة الشحن الخاصة بإرجاع المنتج إلينا، ما لم يكن سبب الإرجاع ناتجاً عن عيب في المنتج أو خطأ في التجهيز من طرفنا. رسوم الشحن الأصلية غير قابلة للاسترداد. وفي حال رد المبلغ، سيتم خصم تكلفة شحن الإرجاع من المبلغ الإجمالي المسترد.
+            </p>
+
+            <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">7. بيانات التواصل لطلبات الإرجاع</h2>
+            <p className="mb-6">
+              لبدء طلب استرجاع أو تقديم استفسار، يُرجى التواصل مع فريق خدمة العملاء:<br />
+              البريد الإلكتروني: <a href="mailto:brbossperfumes@gmail.com" className="text-brand-text underline hover:text-brand-accent">brbossperfumes@gmail.com</a><br />
+              الهاتف: +971 4 235 6130
+            </p>
+
+            <div className="mt-12 pt-8 border-t border-brand-border text-sm text-center">
+              <p>آخر تحديث: يوليو 2026</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pt-32 pb-24 px-6 lg:px-12 bg-brand-bg min-h-screen">
       <div className="mx-auto max-w-3xl">

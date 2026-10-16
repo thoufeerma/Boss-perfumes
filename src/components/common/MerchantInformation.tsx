@@ -10,11 +10,10 @@ export function MerchantInformation({ className = "" }: { className?: string }) 
     <div className={`text-sm text-brand-text-muted space-y-6 ${className}`}>
       <div>
         <h4 className="font-medium text-brand-text uppercase tracking-widest mb-2">{t.merchant.companyInformation}</h4>
-        <p className="font-medium text-brand-text">Boss General Trading LLC</p>
-        <p>Shop No: 11 & 12, Al Zarouni Building</p>
-        <p>Near Kuwait Mosque, Al Dhagaya Street</p>
-        <p>Deira, Dubai, United Arab Emirates</p>
-        <p>P.O. Box: 81130</p>
+        <p className="font-medium text-brand-text">{t.merchant.companyName}</p>
+        {t.merchant.addressLines.map((line, idx) => (
+          <p key={idx}>{line}</p>
+        ))}
       </div>
 
       <div>
