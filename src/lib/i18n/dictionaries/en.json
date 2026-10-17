@@ -35,7 +35,8 @@
     "terms": "Terms & Conditions",
     "privacy": "Privacy Policy",
     "refund": "Refund Policy",
-    "shipping": "Shipping Policy"
+    "shipping": "Shipping Policy",
+    "requestReturn": "Request Return / Refund"
   },
   "cart": {
     "empty": "Your cart is currently empty.",

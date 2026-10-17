@@ -1,6 +1,7 @@
 import { requireAuthenticatedCustomer } from "@/lib/authGuard";
 import { fetchWC } from "@/api/client";
 import Link from "next/link";
+import { OrderReturnSection } from "@/components/account/OrderReturnSection";
 
 export const metadata = {
   title: "Order Details | My Account",
@@ -130,6 +131,8 @@ export default async function OrderDetailsPage({ params }: { params: { id: strin
           </tfoot>
         </table>
       </div>
+
+      <OrderReturnSection order={order} />
 
       <div className="mt-8 text-center">
         <Link href="/account/orders" className="text-xs uppercase tracking-widest text-brand-text underline underline-offset-4 hover:opacity-70 transition-opacity">

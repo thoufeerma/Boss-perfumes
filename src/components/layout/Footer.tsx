@@ -58,6 +58,7 @@ export async function Footer() {
             <li><Link href="/terms" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.terms}</Link></li>
             <li><Link href="/privacy" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.privacy}</Link></li>
             <li><Link href="/refund" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.refund}</Link></li>
+            <li><Link href="/returns" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.requestReturn || "Request Return"}</Link></li>
             <li><Link href="/shipping" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.shipping}</Link></li>
             <li><Link href="/contact" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.contactUs}</Link></li>
           </ul>
