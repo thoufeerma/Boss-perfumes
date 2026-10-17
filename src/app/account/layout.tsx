@@ -41,6 +41,11 @@ export default async function AccountLayout({
                   Orders
                 </Link>
               </li>
+              <li>
+                <Link href="/account/returns" className="text-sm font-medium tracking-widest uppercase text-brand-text-muted hover:text-brand-text transition-colors">
+                  Returns & Refunds
+                </Link>
+              </li>
 
               <li>
                 <Link href="/account/addresses" className="text-sm font-medium tracking-widest uppercase text-brand-text-muted hover:text-brand-text transition-colors">

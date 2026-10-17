@@ -37,7 +37,14 @@ export default async function OrdersPage() {
                 <tr key={order.id} className="hover:bg-brand-bg-secondary transition-colors">
                   <td className="py-6 pe-4">#{order.id}</td>
                   <td className="py-6 px-4">{new Date(order.date_created).toLocaleDateString()}</td>
-                  <td className="py-6 px-4 capitalize">{order.status}</td>
+                  <td className="py-6 px-4">
+                    <span className="capitalize block">{order.status}</span>
+                    {order.meta_data?.some((m: any) => m.key === "_return_request") && order.status !== "refunded" && (
+                      <span className="inline-block text-[10px] bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 uppercase tracking-wider font-medium mt-1">
+                        Return Requested
+                      </span>
+                    )}
+                  </td>
                   <td className="py-6 px-4">
                     <span dangerouslySetInnerHTML={{ __html: order.currency_symbol }} />
                     {parseFloat(order.total).toFixed(2)} for {order.line_items?.reduce((acc: number, item: any) => acc + item.quantity, 0) || 0} items
