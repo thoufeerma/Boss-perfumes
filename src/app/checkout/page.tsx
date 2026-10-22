@@ -25,7 +25,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
   }
 
   return (
-    <div className="pt-32 pb-24 px-6 lg:px-12 bg-brand-bg min-h-screen">
+    <div className="pt-32 pb-24 px-4 sm:px-6 lg:px-12 bg-brand-bg min-h-screen">
       <div className="mx-auto max-w-5xl">
         <h1 className="text-3xl md:text-4xl font-serif text-brand-text mb-8 text-center">{t.checkout.title}</h1>
         

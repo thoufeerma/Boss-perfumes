@@ -22,7 +22,7 @@ const dictionaries = {
     },
     tabby: {
       methodName: "Pay later with Tabby",
-      methodDescription: "Split your payment into 4 interest-free installments",
+      methodDescription: "",
       notAvailable:
         "Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order.",
       amountTooHigh:
@@ -43,7 +43,7 @@ const dictionaries = {
     },
     tabby: {
       methodName: "ادفع لاحقًا عبر تابي",
-      methodDescription: "قسّم مدفوعاتك على 4 أقساط بدون فوائد",
+      methodDescription: "",
       notAvailable:
         "نأسف، تابي غير قادرة على الموافقة على هذه العملية. الرجاء استخدام طريقة دفع أخرى.",
       amountTooHigh:

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { PaymentMethodConfig } from "@/lib/payment/registry";
-import { TabbyPromo } from "@/components/payment/TabbyPromo";
 import { TabbyCard } from "@/components/payment/TabbyCard";
 import Image from "next/image";
 import { useT, useLocale } from "@/components/i18n/I18nProvider";
@@ -113,79 +112,76 @@ export function PaymentMethodSelector({ cartData, billingData, selectedMethod, o
       <div className="flex flex-col gap-3">
         {visibleMethods.map((method) => {
           return (
-            <label 
+            <div 
               key={method.id} 
               className={`
-                flex items-center p-4 border transition-colors duration-200
+                p-4 border transition-colors duration-200 w-full max-w-full overflow-hidden
                 ${!method.eligible ? "opacity-50 bg-brand-surface cursor-not-allowed border-brand-border" : 
                   selectedMethod === method.id 
                     ? "border-brand-text bg-brand-bg-secondary cursor-pointer" 
                     : "border-brand-border bg-brand-surface hover:border-brand-text-muted cursor-pointer"
                 }
               `}
-              onClick={(e) => {
-                if (!method.eligible) {
-                  e.preventDefault();
-                }
+              onClick={() => {
+                if (method.eligible) onSelect(method.id);
               }}
             >
-              <input
-                type="radio"
-                name="paymentMethod"
-                value={method.id}
-                checked={selectedMethod === method.id}
-                onChange={() => {
-                  if (method.eligible) onSelect(method.id);
-                }}
-                disabled={!method.eligible}
-                className="w-4 h-4 text-brand-text border-brand-border focus:ring-brand-accent focus:ring-1 accent-brand-text disabled:opacity-50"
-              />
-              
-              <div className="ms-4 flex-1">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-sm text-brand-text uppercase tracking-wide">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value={method.id}
+                    checked={selectedMethod === method.id}
+                    onChange={() => {
+                      if (method.eligible) onSelect(method.id);
+                    }}
+                    disabled={!method.eligible}
+                    className="w-4 h-4 text-brand-text border-brand-border focus:ring-brand-accent focus:ring-1 accent-brand-text disabled:opacity-50 flex-shrink-0 cursor-pointer"
+                  />
+                  <span className="font-medium text-sm text-brand-text uppercase tracking-wide truncate">
                     {method.name}
                   </span>
-                  
-                  {/* Visual Indicators/Logos could go here based on method.id */}
-                  <div className="flex gap-2 items-center">
-                    {method.id === "checkoutcom" && (
-                      <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Visa / MC</span>
-                    )}
-                    {method.id === "telr" && (
-                      <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Telr</span>
-                    )}
-                    {method.id === "tabby" && (
-                      <Image 
-                        src="/tabby logos/Tabby_Badge/Tabby_Badge_SVG.svg" 
-                        alt="Tabby" 
-                        width={56} 
-                        height={20} 
-                        className="object-contain" 
-                      />
-                    )}
-                  </div>
                 </div>
-
-                {method.id === "tabby" && method.eligible && cartData?.totals && (
-                  <div className="mt-2 mb-1" onClick={(e) => e.stopPropagation()}>
-                    <TabbyCard 
-                      price={parseFloat(cartData.totals.total_price || "0") / (10 ** (cartData.totals.currency_minor_unit || 2))} 
-                      currency={cartData.totals.currency_code || "AED"} 
-                      lang={locale}
+                
+                {/* Visual Indicators/Logos */}
+                <div className="flex gap-2 items-center flex-shrink-0 ms-2">
+                  {method.id === "checkoutcom" && (
+                    <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Visa / MC</span>
+                  )}
+                  {method.id === "telr" && (
+                    <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Telr</span>
+                  )}
+                  {method.id === "tabby" && (
+                    <Image 
+                      src="/tabby logos/Tabby_Badge/Tabby_Badge_SVG.svg" 
+                      alt="Tabby" 
+                      width={56} 
+                      height={20} 
+                      className="object-contain" 
                     />
-                  </div>
-                )}
-                
-                {method.description && (
-                  <p className="text-xs text-brand-text-muted mt-1">{method.description}</p>
-                )}
-                
-                {!method.eligible && method.reason && (
-                  <p className="text-xs text-red-500 mt-2 font-medium whitespace-pre-line">{method.reason}</p>
-                )}
+                  )}
+                </div>
               </div>
-            </label>
+
+              {method.id === "tabby" && method.eligible && cartData?.totals && (
+                <div className="mt-3 w-full min-w-0 max-w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                  <TabbyCard 
+                    price={parseFloat(cartData.totals.total_price || "0") / (10 ** (cartData.totals.currency_minor_unit || 2))} 
+                    currency={cartData.totals.currency_code || "AED"} 
+                    lang={locale}
+                  />
+                </div>
+              )}
+              
+              {method.description ? (
+                <p className="text-xs text-brand-text-muted mt-2 ps-7">{method.description}</p>
+              ) : null}
+              
+              {!method.eligible && method.reason && (
+                <p className="text-xs text-red-500 mt-2 font-medium whitespace-pre-line ps-7">{method.reason}</p>
+              )}
+            </div>
           );
         })}
       </div>

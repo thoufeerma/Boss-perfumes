@@ -197,8 +197,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 4. PRESERVE the cart token until payment succeeds.
-    // Do NOT delete it here.
+    // 4. Clear cart cookies once the order and session are created.
+    // In Tabby's Corner Case Flow, the customer completes payment on Tabby's hosted
+    // checkout and closes the browser tab before the redirect back to /checkout/success.
+    // By clearing the cart cookies here, if the customer returns to the site at any point,
+    // the cart is already empty and duplicate orders are prevented.
+    cookieStore.delete("wc_cart_token");
+    cookieStore.delete("wc_store_nonce");
 
     // 5. Initialize Payment Session
     const provider = getPaymentProvider(selectedMethod.id);
@@ -218,7 +223,10 @@ export async function POST(request: NextRequest) {
       locale,
     });
 
-    return NextResponse.json({ ...session, orderId });
+    const res = NextResponse.json({ ...session, orderId });
+    res.cookies.delete("wc_cart_token");
+    res.cookies.delete("wc_store_nonce");
+    return res;
 
   } catch (error: any) {
     console.error("Create session error:", error);

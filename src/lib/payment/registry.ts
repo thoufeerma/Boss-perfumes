@@ -36,7 +36,7 @@ export function paymentMethods(locale: Locale = DEFAULT_LOCALE): PaymentMethodCo
       provider: "Tabby",
       enabled: paymentConfig.tabby.enabled,
       sortOrder: 2,
-      description: m.tabby.methodDescription,
+      description: "",
     },
     {
       id: "telr",

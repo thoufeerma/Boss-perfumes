@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { MerchantDisclosure } from "./MerchantDisclosure";
 import { useCustomerStore } from "@/store/customer-store";
 import { useCartContext } from "@/components/cart/CartProvider";
+import { addToCart } from "@/api/cart";
 import { PaymentMethodSelector } from "./PaymentMethodSelector";
 import { useT } from "@/components/i18n/I18nProvider";
 
@@ -77,7 +78,7 @@ const COUNTRIES = [
 export function PaymentFlow() {
   const t = useT();
   const { profile, isLoading, fetchProfile, updateProfile } = useCustomerStore();
-  const { cart } = useCartContext();
+  const { cart, setCart, refreshCart } = useCartContext();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -87,6 +88,36 @@ export function PaymentFlow() {
   const [countryQuery, setCountryQuery] = useState("United Arab Emirates (AE)");
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const countryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // If the customer returns from a cancelled or failed payment, restore items to cart
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const err = params.get("error");
+      if (err === "tabby_cancel" || err === "tabby_failed") {
+        const backup = sessionStorage.getItem("boss_pending_cart_backup");
+        if (backup) {
+          try {
+            const items = JSON.parse(backup);
+            sessionStorage.removeItem("boss_pending_cart_backup");
+            if (Array.isArray(items) && items.length > 0) {
+              (async () => {
+                for (const it of items) {
+                  await addToCart(it.id, it.quantity).catch(console.error);
+                }
+                await refreshCart();
+              })();
+            }
+          } catch (e) {
+            console.error("Failed to restore cart from backup:", e);
+          }
+        }
+      } else {
+        // Corner case or normal flow: discard backup
+        sessionStorage.removeItem("boss_pending_cart_backup");
+      }
+    }
+  }, [refreshCart]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -204,6 +235,15 @@ export function PaymentFlow() {
       }
 
       if (data.redirectUrl) {
+        if (cart && cart.items && cart.items.length > 0) {
+          try {
+            sessionStorage.setItem("boss_pending_cart_backup", JSON.stringify(cart.items));
+          } catch {
+            // ignore
+          }
+        }
+        setCart(null);
+        await fetch("/api/cart/clear", { method: "POST" }).catch(() => {});
         window.location.href = data.redirectUrl;
       } else {
         throw new Error("No redirect URL returned from payment provider");

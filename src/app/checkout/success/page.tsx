@@ -3,24 +3,11 @@ import { CheckCircle2 } from "lucide-react";
 import { ClearCartEffect } from "./ClearCartEffect";
 import { paymentConfig } from "@/lib/payment/config";
 
-import { cookies } from "next/headers";
-
 export const metadata = {
   title: "Order Successful | Boss Perfumes",
 };
 
 export default async function CheckoutSuccessPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
-  // Corner Case Fix: clear the cart server-side immediately on success so that if the
-  // customer navigates back to the store after Tabby redirects here, the cart is already
-  // empty and cannot be used to place a duplicate order.
-  try {
-    const cookieStore = await cookies();
-    cookieStore.delete("wc_cart_token");
-    cookieStore.delete("wc_store_nonce");
-  } catch (e) {
-    // cookies() may throw in some edge runtimes; ClearCartEffect is the client-side fallback.
-    console.warn("[Success Page] Could not delete cart cookies server-side:", e);
-  }
   const resolvedParams = await searchParams;
   const paymentId = resolvedParams.payment_id as string;
   
