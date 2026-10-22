@@ -52,17 +52,3 @@
   }
 }
 
-/* Tabby checkout snippet mobile responsiveness */
-.tabby-card-container {
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
-}
-
-.tabby-card-container * {
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-}
-
