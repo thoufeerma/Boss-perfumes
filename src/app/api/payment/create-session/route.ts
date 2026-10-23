@@ -6,7 +6,7 @@ import { paymentMessages } from "@/lib/i18n/messages";
 import { getLocale } from "@/lib/i18n/server";
 import { cookies } from "next/headers";
 import { fetchWC } from "@/api/client";
-import { getCart } from "@/api/cart";
+import { getCart, clearCart } from "@/api/cart";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
@@ -197,15 +197,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 4. Clear cart cookies once the order and session are created.
-    // In Tabby's Corner Case Flow, the customer completes payment on Tabby's hosted
-    // checkout and closes the browser tab before the redirect back to /checkout/success.
-    // By clearing the cart cookies here, if the customer returns to the site at any point,
-    // the cart is already empty and duplicate orders are prevented.
-    cookieStore.delete("wc_cart_token");
-    cookieStore.delete("wc_store_nonce");
-
-    // 5. Initialize Payment Session
+    // 4. Initialize Payment Session
     const provider = getPaymentProvider(selectedMethod.id);
     const session = await provider.createSession({
       orderId: orderId as number,
@@ -223,9 +215,39 @@ export async function POST(request: NextRequest) {
       locale,
     });
 
+    // 5. Server-side cart clear before redirecting.
+    // In Tabby's Corner Case Flow, the customer completes payment on Tabby's hosted
+    // checkout and closes the browser tab before the redirect back to /checkout/success.
+    // We clear the WooCommerce cart items on the server BEFORE returning the Tabby session
+    // URL so that no client redirect can outrun the clear.
+    try {
+      await clearCart();
+      if (customerId && customerId > 0) {
+        try {
+          await fetchWC(`customers/${customerId}`, {
+            method: "PUT",
+            body: JSON.stringify({
+              meta_data: [
+                { key: "_woocommerce_persistent_cart", value: "" },
+                { key: "_woocommerce_persistent_cart_1", value: "" },
+              ],
+            }),
+          });
+          console.log(`[Create Session] Cleared persistent cart for customer ${customerId}`);
+        } catch (err) {
+          console.warn(`[Create Session] Could not clear customer ${customerId} persistent cart:`, err);
+        }
+      }
+    } catch (err) {
+      console.error("[Create Session] Failed to clear cart server-side:", err);
+    }
+
+    cookieStore.delete("wc_cart_token");
+    cookieStore.delete("wc_store_nonce");
+
     const res = NextResponse.json({ ...session, orderId });
-    res.cookies.delete("wc_cart_token");
-    res.cookies.delete("wc_store_nonce");
+    res.cookies.set("wc_cart_token", "", { path: "/", maxAge: 0, expires: new Date(0) });
+    res.cookies.set("wc_store_nonce", "", { path: "/", maxAge: 0, expires: new Date(0) });
     return res;
 
   } catch (error: any) {

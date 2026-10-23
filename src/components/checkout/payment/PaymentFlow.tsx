@@ -88,6 +88,7 @@ export function PaymentFlow() {
   const [countryQuery, setCountryQuery] = useState("United Arab Emirates (AE)");
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const countryRef = useRef<HTMLDivElement>(null);
+  const isRestoringRef = useRef(false);
 
   useEffect(() => {
     // If the customer returns from a cancelled or failed payment, restore items to cart
@@ -95,17 +96,26 @@ export function PaymentFlow() {
       const params = new URLSearchParams(window.location.search);
       const err = params.get("error");
       if (err === "tabby_cancel" || err === "tabby_failed") {
+        if (isRestoringRef.current) return;
         const backup = sessionStorage.getItem("boss_pending_cart_backup");
         if (backup) {
           try {
             const items = JSON.parse(backup);
-            sessionStorage.removeItem("boss_pending_cart_backup");
             if (Array.isArray(items) && items.length > 0) {
+              isRestoringRef.current = true;
               (async () => {
-                for (const it of items) {
-                  await addToCart(it.id, it.quantity).catch(console.error);
+                try {
+                  for (const it of items) {
+                    await addToCart(it.id, it.quantity).catch(console.error);
+                  }
+                  await refreshCart();
+                  // Only remove snapshot after successful restoration so page refresh won't lose items
+                  sessionStorage.removeItem("boss_pending_cart_backup");
+                } catch (e) {
+                  console.error("Failed to restore cart from backup:", e);
+                } finally {
+                  isRestoringRef.current = false;
                 }
-                await refreshCart();
               })();
             }
           } catch (e) {
@@ -212,7 +222,16 @@ export function PaymentFlow() {
         }
       }
 
-      // 2. Create payment session
+      // Snapshot cart backup BEFORE create-session so cancel/failure recovery is guaranteed
+      if (cart && cart.items && cart.items.length > 0) {
+        try {
+          sessionStorage.setItem("boss_pending_cart_backup", JSON.stringify(cart.items));
+        } catch {
+          // ignore
+        }
+      }
+
+      // 2. Create payment session (the server clears WooCommerce cart before returning redirectUrl)
       const response = await fetch("/api/payment/create-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -235,15 +254,7 @@ export function PaymentFlow() {
       }
 
       if (data.redirectUrl) {
-        if (cart && cart.items && cart.items.length > 0) {
-          try {
-            sessionStorage.setItem("boss_pending_cart_backup", JSON.stringify(cart.items));
-          } catch {
-            // ignore
-          }
-        }
         setCart(null);
-        await fetch("/api/cart/clear", { method: "POST" }).catch(() => {});
         window.location.href = data.redirectUrl;
       } else {
         throw new Error("No redirect URL returned from payment provider");

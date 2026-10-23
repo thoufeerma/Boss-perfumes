@@ -132,6 +132,10 @@ async function fetchStoreApi(
       if (cartToken) {
         refreshHeaders.set("Cart-Token", cartToken);
       }
+      const authToken = await getAuthToken();
+      if (authToken) {
+        refreshHeaders.set("Authorization", `Bearer ${authToken}`);
+      }
 
       const refreshResponse = await fetch(new URL("wp-json/wc/store/v1/cart", storeUrl).toString(), {
         headers: refreshHeaders,
@@ -151,8 +155,16 @@ async function fetchStoreApi(
     throw new Error(`Failed to interact with WooCommerce Cart: ${response.status}`);
   }
 
+  const responseText = await response.text();
+  let responseData = null;
+  try {
+    responseData = responseText ? JSON.parse(responseText) : null;
+  } catch {
+    responseData = responseText;
+  }
+
   return {
-    data: await response.json(),
+    data: responseData,
     headers: {
       cartToken: newCartToken,
       nonce: newNonce
@@ -259,3 +271,32 @@ export async function removeItem(key: string): Promise<CartData | null> {
     throw error;
   }
 }
+
+export async function clearCart(): Promise<boolean> {
+  console.log("[Cart API] Clearing cart on WooCommerce Store API (DELETE cart/items)...");
+  try {
+    const { data } = await fetchStoreApi("cart/items", {
+      method: "DELETE",
+    });
+    console.log("[Cart API] WooCommerce cart/items deleted successfully. Response:", data);
+
+    try {
+      const cookieStore = await cookies();
+      cookieStore.delete(CART_TOKEN_COOKIE);
+      cookieStore.delete(NONCE_COOKIE);
+    } catch (e) {
+      console.debug("[Cart API] Cookie delete in Server Component context ignored:", e);
+    }
+
+    return true;
+  } catch (error) {
+    console.error("[Cart API] Failed to clear cart items on WooCommerce:", error);
+    try {
+      const cookieStore = await cookies();
+      cookieStore.delete(CART_TOKEN_COOKIE);
+      cookieStore.delete(NONCE_COOKIE);
+    } catch {}
+    throw error;
+  }
+}
+

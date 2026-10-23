@@ -73,6 +73,23 @@ export async function processWebhook(request: NextRequest, providerId?: string) 
           // If it was somehow cancelled before but now paid, we can move it to processing. 
           wcStatus = "processing";
         }
+        // Fallback: Ensure customer's persistent cart in WooCommerce is emptied once payment is confirmed
+        if (currentOrder.customer_id && currentOrder.customer_id > 0) {
+          try {
+            await fetchWC(`customers/${currentOrder.customer_id}`, {
+              method: "PUT",
+              body: JSON.stringify({
+                meta_data: [
+                  { key: "_woocommerce_persistent_cart", value: "" },
+                  { key: "_woocommerce_persistent_cart_1", value: "" }
+                ]
+              })
+            });
+            console.log(`[Webhook] Emptied persistent cart fallback for customer ${currentOrder.customer_id}`);
+          } catch (err) {
+            console.warn(`[Webhook] Failed to clear persistent cart for customer ${currentOrder.customer_id}:`, err);
+          }
+        }
         break;
       case "cancelled":
       case "failed":
