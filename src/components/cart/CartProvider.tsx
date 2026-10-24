@@ -17,6 +17,11 @@ export function CartProvider({ children, initialCart }: { children: ReactNode; i
   const [cart, setCartState] = useState<CartData | null>(initialCart);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Sync state if server passes updated initialCart
+  useEffect(() => {
+    setCartState(initialCart);
+  }, [initialCart]);
+
   const refreshCart = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -31,7 +36,41 @@ export function CartProvider({ children, initialCart }: { children: ReactNode; i
 
   const setCart = useCallback((newCart: CartData | null) => {
     setCartState(newCart);
+    try {
+      localStorage.setItem("boss_cart_updated", Date.now().toString());
+    } catch {}
   }, []);
+
+  // Multi-tab, window focus, and bfcache navigation synchronization
+  useEffect(() => {
+    const handleSync = () => {
+      refreshCart();
+    };
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "boss_cart_updated") {
+        refreshCart();
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        refreshCart();
+      }
+    };
+
+    window.addEventListener("focus", handleSync);
+    window.addEventListener("pageshow", handleSync);
+    window.addEventListener("storage", handleStorage);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.removeEventListener("focus", handleSync);
+      window.removeEventListener("pageshow", handleSync);
+      window.removeEventListener("storage", handleStorage);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [refreshCart]);
 
   const cartCount = cart?.items_count || 0;
 

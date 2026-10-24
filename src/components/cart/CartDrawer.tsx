@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useUIStore } from "@/store/ui-store";
 import { useCartContext } from "@/components/cart/CartProvider";
 import { useCart } from "@/hooks/useCart";
@@ -16,10 +17,16 @@ export function CartDrawer() {
   const t = useT();
   const locale = useLocale();
   const { isCartOpen, setCartOpen } = useUIStore();
-  const { cart, cartCount } = useCartContext();
+  const { cart, cartCount, refreshCart } = useCartContext();
   const { remove, update, isUpdating } = useCart();
   
   useScrollLock(isCartOpen);
+
+  useEffect(() => {
+    if (isCartOpen) {
+      refreshCart();
+    }
+  }, [isCartOpen, refreshCart]);
 
   return (
     <>
