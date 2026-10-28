@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
+        hostname: 'cms.bossperfumes.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'darkorange-newt-323940.hostingersite.com',
       },
     ],

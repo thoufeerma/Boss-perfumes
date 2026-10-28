@@ -18,6 +18,7 @@ const dictionaries = {
   en: {
     methods: {
       card: { name: "Credit / Debit Card", description: "Visa • Mastercard" },
+      woopayments: { name: "Credit / Debit Card & Apple Pay", description: "Pay securely via WooPayments" },
       telr: { name: "Secure Payment", description: "Secure UAE Payment Gateway" },
     },
     tabby: {
@@ -39,6 +40,7 @@ const dictionaries = {
   ar: {
     methods: {
       card: { name: "بطاقة ائتمان / خصم", description: "فيزا • ماستركارد" },
+      woopayments: { name: "بطاقة ائتمان / خصم و أبل باي", description: "الدفع بأمان عبر مدفوعات ووكومرس" },
       telr: { name: "دفع آمن", description: "بوابة دفع إماراتية آمنة" },
     },
     tabby: {

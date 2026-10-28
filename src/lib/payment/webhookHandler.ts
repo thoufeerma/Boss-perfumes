@@ -13,6 +13,8 @@ export async function processWebhook(request: NextRequest, providerId?: string) 
         detectedProviderId = "checkoutcom";
       } else if (request.headers.get("x-tabby-webhook-secret")) {
         detectedProviderId = "tabby";
+      } else if (request.headers.get("x-wc-webhook-signature") || request.headers.get("x-wc-webhook-source")) {
+        detectedProviderId = "woopayments";
       }
       // Add Telr detection here later if needed
     }

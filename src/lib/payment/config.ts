@@ -22,5 +22,11 @@ export const paymentConfig = {
     authKey: process.env.TELR_AUTH_KEY,
     gatewayUrl: process.env.NEXT_PUBLIC_TELR_GATEWAY_URL || process.env.TELR_GATEWAY_URL || "https://secure.telr.com/gateway/order.json",
     webhookSecret: process.env.TELR_WEBHOOK_SECRET,
+  },
+
+  woopayments: {
+    enabled: process.env.NEXT_PUBLIC_WOOPAYMENTS_ENABLED !== "false" && process.env.WOOPAYMENTS_ENABLED !== "false",
+    storeUrl: process.env.NEXT_PUBLIC_WC_STORE_URL,
+    webhookSecret: process.env.WOOPAYMENTS_WEBHOOK_SECRET,
   }
 };

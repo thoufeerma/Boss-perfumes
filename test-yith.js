@@ -1,4 +1,4 @@
-const storeUrl = "https://darkorange-newt-323940.hostingersite.com/";
+const storeUrl = "https://cms.bossperfumes.com/";
 const consumerKey = "ck_84d2c8308f3df111e4cf428d92c7c0716696983c";
 const consumerSecret = "cs_711e8bfcd430b61aced90d628d4747be1460ecb5";
 

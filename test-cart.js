@@ -1,5 +1,5 @@
 (async () => {
-  const storeUrl = "https://darkorange-newt-323940.hostingersite.com";
+  const storeUrl = "https://cms.bossperfumes.com";
   
   // Test endpoint 1: get cart
   console.log("Testing GET cart/items to get Nonce:");

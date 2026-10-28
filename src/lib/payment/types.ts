@@ -18,6 +18,8 @@ export interface PaymentSessionRequest {
   customerId?: number;
   buyerHistory?: any;
   orderHistory?: any[];
+  orderKey?: string;
+  paymentUrl?: string;
 }
 
 export interface PaymentSessionResponse {

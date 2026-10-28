@@ -56,12 +56,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const wcPaymentMethod = selectedMethod.id === "woopayments" ? "woocommerce_payments" : selectedMethod.id;
+
     orderId = existingOrderId;
+    let orderResponse: any = null;
 
     if (!orderId) {
       // 3. Create Pending WooCommerce Order directly via Server-to-Server REST API
       const orderPayload = {
-        payment_method: selectedMethod.id, 
+        payment_method: wcPaymentMethod, 
         payment_method_title: selectedMethod.name,
         set_paid: false, // Leave order as Pending
         customer_id: customerId,
@@ -73,7 +76,7 @@ export async function POST(request: NextRequest) {
         ]
       };
 
-      const orderResponse = await fetchWC("orders", {
+      orderResponse = await fetchWC("orders", {
         method: "POST",
         body: JSON.stringify(orderPayload),
       });
@@ -89,10 +92,10 @@ export async function POST(request: NextRequest) {
       orderId = orderResponse.id;
     } else {
       // Optional: Update the existing order's payment method and billing info before retrying
-      await fetchWC(`orders/${orderId}`, {
+      orderResponse = await fetchWC(`orders/${orderId}`, {
         method: "PUT",
         body: JSON.stringify({
-          payment_method: selectedMethod.id,
+          payment_method: wcPaymentMethod,
           payment_method_title: selectedMethod.name,
           meta_data: [
             { key: "_payment_provider", value: selectedMethod.provider },
@@ -213,6 +216,8 @@ export async function POST(request: NextRequest) {
       orderHistory: orderHistory,
       cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout`,
       locale,
+      orderKey: orderResponse?.order_key,
+      paymentUrl: orderResponse?.payment_url,
     });
 
     // 5. Server-side cart clear before redirecting.

@@ -95,7 +95,7 @@ export function PaymentFlow() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const err = params.get("error");
-      if (err === "tabby_cancel" || err === "tabby_failed") {
+      if (err === "tabby_cancel" || err === "tabby_failed" || err === "woopayments_cancel" || err === "woopayments_failed" || err === "cancel") {
         if (isRestoringRef.current) return;
         const backup = sessionStorage.getItem("boss_pending_cart_backup");
         if (backup) {

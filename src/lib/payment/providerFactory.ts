@@ -2,6 +2,7 @@ import { PaymentProvider } from "./types";
 import { CheckoutComProvider } from "./checkoutcom";
 import { TelrProvider } from "./telr";
 import { TabbyProvider } from "./tabby";
+import { WooPaymentsProvider } from "./woopayments";
 import { paymentConfig } from "./config";
 import { getEnabledPaymentMethods } from "./registry";
 
@@ -17,6 +18,9 @@ export function getPaymentProvider(providerId?: string): PaymentProvider {
   switch (selectedProvider.toLowerCase()) {
     case "checkoutcom":
       return new CheckoutComProvider();
+    case "woopayments":
+    case "woocommerce":
+      return new WooPaymentsProvider();
     case "telr":
       return new TelrProvider();
     case "tabby":

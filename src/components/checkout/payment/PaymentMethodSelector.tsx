@@ -149,6 +149,9 @@ export function PaymentMethodSelector({ cartData, billingData, selectedMethod, o
                   {method.id === "checkoutcom" && (
                     <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Visa / MC</span>
                   )}
+                  {method.id === "woopayments" && (
+                    <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Cards / Apple Pay</span>
+                  )}
                   {method.id === "telr" && (
                     <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Telr</span>
                   )}

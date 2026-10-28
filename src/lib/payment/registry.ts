@@ -31,11 +31,19 @@ export function paymentMethods(locale: Locale = DEFAULT_LOCALE): PaymentMethodCo
       description: m.methods.card.description,
     },
     {
+      id: "woopayments",
+      name: m.methods.woopayments.name,
+      provider: "WooPayments",
+      enabled: paymentConfig.woopayments.enabled,
+      sortOrder: 2,
+      description: m.methods.woopayments.description,
+    },
+    {
       id: "tabby",
       name: m.tabby.methodName,
       provider: "Tabby",
       enabled: paymentConfig.tabby.enabled,
-      sortOrder: 2,
+      sortOrder: 3,
       description: "",
     },
     {
@@ -43,7 +51,7 @@ export function paymentMethods(locale: Locale = DEFAULT_LOCALE): PaymentMethodCo
       name: m.methods.telr.name,
       provider: "Telr",
       enabled: paymentConfig.telr.enabled,
-      sortOrder: 3,
+      sortOrder: 4,
       description: m.methods.telr.description,
     },
   ];
