@@ -9,9 +9,9 @@ export async function Footer() {
 
   return (
     <footer className="bg-brand-bg-secondary pt-24 pb-12 px-6 lg:px-12 border-t border-brand-border">
-      <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-8 mb-24">
+      <div className="mx-auto max-w-7xl grid grid-cols-2 md:grid-cols-12 gap-y-12 gap-x-6 sm:gap-x-8 md:gap-8 mb-24">
         {/* Brand & Newsletter col */}
-        <div className="md:col-span-4">
+        <div className="col-span-2 md:col-span-4">
           <p className="text-sm font-medium uppercase tracking-widest text-brand-text mb-6">
             {t.footer.newsletterPitch}
           </p>
@@ -40,32 +40,36 @@ export async function Footer() {
           </div>
         </div>
 
-        {/* Links Col 1 */}
-        <div className="md:col-span-2">
+        {/* Links Col 1: Shop */}
+        <div className="col-span-1 md:col-span-2">
           <h4 className="text-sm font-medium uppercase tracking-widest text-brand-text mb-6">{t.footer.shop}</h4>
-          <ul className="flex flex-col gap-4">
-            <li><Link href="/collections" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.allPerfumes}</Link></li>
-            <li><Link href="/category/men" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.mens}</Link></li>
-            <li><Link href="/category/women" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.womens}</Link></li>
-            <li><Link href="/category/unisex" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.unisex}</Link></li>
+          <ul className="flex flex-col gap-3.5">
+            <li><Link href="/collections" className="text-sm text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.allPerfumes}</Link></li>
+            <li><Link href="/collections/men" className="text-sm text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.mens}</Link></li>
+            <li><Link href="/collections/women" className="text-sm text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.womens}</Link></li>
+            <li><Link href="/collections/unisex" className="text-sm text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.unisex}</Link></li>
+            <li><Link href="/collections/luxury" className="text-sm text-brand-text-muted hover:text-brand-text transition-colors">{t.nav.luxury}</Link></li>
+            <li><Link href="/collections/offers" className="text-sm text-brand-text-muted hover:text-brand-text transition-colors">{t.nav.offers}</Link></li>
+            <li><Link href="/brands" className="text-sm text-brand-text-muted hover:text-brand-text transition-colors">{t.nav.brands}</Link></li>
           </ul>
         </div>
 
-        {/* Links Col 2 */}
-        <div className="md:col-span-2">
+        {/* Links Col 2: Support */}
+        <div className="col-span-1 md:col-span-2">
           <h4 className="text-sm font-medium uppercase tracking-widest text-brand-text mb-6">{t.footer.support}</h4>
-          <ul className="flex flex-col gap-4">
-            <li><Link href="/terms" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.terms}</Link></li>
-            <li><Link href="/privacy" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.privacy}</Link></li>
-            <li><Link href="/refund" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.refund}</Link></li>
-            <li><Link href="/returns" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.requestReturn || "Request Return"}</Link></li>
-            <li><Link href="/shipping" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.shipping}</Link></li>
-            <li><Link href="/contact" className="text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.contactUs}</Link></li>
+          <ul className="flex flex-col gap-3.5">
+            <li><Link href="/terms" className="text-sm text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.terms}</Link></li>
+            <li><Link href="/privacy" className="text-sm text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.privacy}</Link></li>
+            <li><Link href="/refund" className="text-sm text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.refund}</Link></li>
+            <li><Link href="/returns" className="text-sm text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.requestReturn || "Request Return"}</Link></li>
+            <li><Link href="/shipping" className="text-sm text-brand-text-muted hover:text-brand-text transition-colors">{t.policies.shipping}</Link></li>
+            <li><Link href="/contact" className="text-sm text-brand-text-muted hover:text-brand-text transition-colors">{t.footer.contactUs}</Link></li>
+            <li><Link href="/our-boutique" className="text-sm text-brand-text-muted hover:text-brand-text transition-colors">{t.nav.boutique || "Our Boutique"}</Link></li>
           </ul>
         </div>
 
         {/* Merchant Info Col */}
-        <div className="md:col-span-4">
+        <div className="col-span-2 md:col-span-4">
           <MerchantInformation />
         </div>
       </div>
@@ -77,13 +81,31 @@ export async function Footer() {
             © 2026 Boss General Trading LLC. All Rights Reserved.
           </p>
           <div className="flex items-center gap-6 text-brand-text-muted">
-            <a href="#" className="hover:text-brand-text transition-colors">
+            <a 
+              href="https://www.instagram.com" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-brand-text transition-colors"
+              aria-label="Instagram"
+            >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
             </a>
-            <a href="#" className="hover:text-brand-text transition-colors">
+            <a 
+              href="https://www.facebook.com" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-brand-text transition-colors"
+              aria-label="Facebook"
+            >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
             </a>
-            <a href="#" className="hover:text-brand-text transition-colors">
+            <a 
+              href="https://twitter.com" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-brand-text transition-colors"
+              aria-label="Twitter"
+            >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
             </a>
           </div>

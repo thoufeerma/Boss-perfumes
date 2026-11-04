@@ -8,7 +8,8 @@ import { createUrl } from "@/lib/navigation";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import { useAuthState } from "@/components/auth/AuthProvider";
 import { useAuth } from "@/hooks/useAuth";
-import { useT } from "@/components/i18n/I18nProvider";
+import { useT, useLocale } from "@/components/i18n/I18nProvider";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 
 const NAV_LINKS = [
   { key: "collections", href: "/collections" },
@@ -16,13 +17,13 @@ const NAV_LINKS = [
   { key: "men", href: "/collections/men" },
   { key: "women", href: "/collections/women" },
   { key: "luxuryCollection", href: "/collections/luxury" },
-  { key: "offers", href: "/collections/offers" },
   { key: "wishlist", href: "/wishlist?v=new" },
   { key: "account", href: "/account" },
 ] as const;
 
 export function MobileMenu() {
   const t = useT();
+  const locale = useLocale();
   const { isMobileMenuOpen, setMobileMenuOpen } = useUIStore();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -93,9 +94,15 @@ export function MobileMenu() {
           )}
         </nav>
         
-        <div className="mt-auto">
-          <p className="text-sm text-brand-text-muted mb-4 uppercase tracking-widest">{t.menu.needHelp}</p>
-          <a href="mailto:brbossperfumes@gmail.com" className="text-base text-brand-text hover:underline underline-offset-4">brbossperfumes@gmail.com</a>
+        <div className="mt-auto pt-6 border-t border-brand-border space-y-5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs uppercase tracking-widest text-brand-text-muted">Language</span>
+            <LanguageSwitcher current={locale} />
+          </div>
+          <div>
+            <p className="text-xs text-brand-text-muted mb-2 uppercase tracking-widest">{t.menu.needHelp}</p>
+            <a href="mailto:brbossperfumes@gmail.com" className="text-sm text-brand-text hover:underline underline-offset-4">brbossperfumes@gmail.com</a>
+          </div>
         </div>
       </div>
     </>

@@ -31,13 +31,6 @@ export function LuxuryCampaignBanner({ data }: LuxuryCampaignBannerProps) {
             return;
           }
           
-          // Disable parallax on mobile where we don't pin
-          if (window.innerWidth < 768) {
-            bgRef.current.style.transform = `translateY(0)`;
-            ticking = false;
-            return;
-          }
-          
           const rect = sectionRef.current.getBoundingClientRect();
           const viewportHeight = window.innerHeight;
           
@@ -67,15 +60,15 @@ export function LuxuryCampaignBanner({ data }: LuxuryCampaignBannerProps) {
   return (
     <section 
       ref={sectionRef} 
-      className="relative w-full h-[100vh] md:h-[200vh] md:mb-[-100vh] z-0 bg-[#111]"
+      className="relative w-full h-[200vh] mb-[-100vh] z-0 bg-[#111]"
     >
       {/* Pinned Container */}
-      <div className="relative md:sticky top-0 w-full h-[100vh] flex items-center justify-center overflow-hidden">
+      <div className="sticky top-0 w-full h-[100vh] flex items-center justify-center overflow-hidden">
         
         {/* Background Image Container with extra height for parallax */}
         <div 
           ref={bgRef}
-          className="absolute top-0 left-0 w-full h-[100vh] md:h-[110vh] z-0 will-change-transform"
+          className="absolute top-0 left-0 w-full h-[110vh] z-0 will-change-transform"
         >
           <Image
             src={imageUrl}

@@ -33,11 +33,11 @@ export function BrandMarquee({
       </div>
 
       <div 
-        className="flex overflow-hidden w-full group/marquee"
+        className="flex overflow-hidden w-full group/marquee md:[--marquee-gap:5rem]"
         style={
           {
             "--marquee-duration": `${speed}s`,
-            "--marquee-gap": "5rem",
+            "--marquee-gap": "3.5rem",
           } as React.CSSProperties
         }
       >
@@ -51,14 +51,14 @@ export function BrandMarquee({
           {brands.map((brand) => (
             <div 
               key={brand.id} 
-              className="relative shrink-0 transition-all duration-300 ease-out hover:opacity-100 opacity-70 hover:scale-[1.03] grayscale mix-blend-multiply"
+              className="relative shrink-0 flex items-center justify-center h-[56px] sm:h-[64px] md:h-[75px] transition-all duration-300 ease-out hover:opacity-100 opacity-85 md:opacity-70 hover:scale-[1.04] grayscale mix-blend-multiply"
             >
               <Image
                 src={brand.logo}
                 alt={brand.name}
-                width={200}
-                height={80}
-                className="object-contain h-[40px] md:h-[60px] lg:h-[75px] w-auto max-w-[140px] md:max-w-[220px]"
+                width={240}
+                height={100}
+                className="object-contain h-[48px] sm:h-[58px] md:h-[68px] lg:h-[78px] w-auto max-w-[170px] sm:max-w-[200px] md:max-w-[240px]"
                 unoptimized
               />
             </div>
@@ -76,14 +76,14 @@ export function BrandMarquee({
           {brands.map((brand) => (
             <div 
               key={`${brand.id}-dup`} 
-              className="relative shrink-0 transition-all duration-300 ease-out hover:opacity-100 opacity-70 hover:scale-[1.03] grayscale mix-blend-multiply"
+              className="relative shrink-0 flex items-center justify-center h-[56px] sm:h-[64px] md:h-[75px] transition-all duration-300 ease-out hover:opacity-100 opacity-85 md:opacity-70 hover:scale-[1.04] grayscale mix-blend-multiply"
             >
               <Image
                 src={brand.logo}
                 alt={brand.name}
-                width={200}
-                height={80}
-                className="object-contain h-[40px] md:h-[60px] lg:h-[75px] w-auto max-w-[140px] md:max-w-[220px]"
+                width={240}
+                height={100}
+                className="object-contain h-[48px] sm:h-[58px] md:h-[68px] lg:h-[78px] w-auto max-w-[170px] sm:max-w-[200px] md:max-w-[240px]"
                 unoptimized
               />
             </div>

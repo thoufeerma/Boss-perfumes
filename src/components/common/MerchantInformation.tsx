@@ -19,7 +19,7 @@ export function MerchantInformation({ className = "" }: { className?: string }) 
       <div>
         <h4 className="font-medium text-brand-text uppercase tracking-widest mb-2">{t.merchant.contactUs}</h4>
         <p>{t.merchant.email} <a href="mailto:brbossperfumes@gmail.com" className="hover:text-brand-text transition-colors">brbossperfumes@gmail.com</a></p>
-        <p>Phone: +971 4 235 6130 / +971 4 3983968</p>
+        <p>Phone: <a href="tel:+97142356130" className="hover:text-brand-text transition-colors">+971 4 235 6130</a> / <a href="tel:+97143983968" className="hover:text-brand-text transition-colors">+971 4 3983968</a></p>
       </div>
 
       <div>

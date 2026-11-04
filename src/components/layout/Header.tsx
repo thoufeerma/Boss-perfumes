@@ -20,7 +20,6 @@ const NAV_LINKS = [
   { key: "men", href: "/collections/men" },
   { key: "women", href: "/collections/women" },
   { key: "luxury", href: "/collections/luxury" },
-  { key: "offers", href: "/collections/offers" },
 ] as const;
 
 export function Header({ locale }: { locale: Locale }) {
@@ -82,19 +81,22 @@ export function Header({ locale }: { locale: Locale }) {
           })}
         </nav>
 
-        {/* Left: Mobile Menu Toggle */}
-        <button
-          className="lg:hidden p-2 -ms-2 text-brand-text hover:opacity-70 transition-opacity"
-          onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label={t.header.toggleMenu}
-        >
-          {isMobileMenuOpen ? <X className="w-5 h-5" strokeWidth={1.5} /> : <Menu className="w-5 h-5" strokeWidth={1.5} />}
-        </button>
+        {/* Left: Mobile Menu Toggle & Language Switcher */}
+        <div className="flex items-center gap-2.5 lg:hidden">
+          <button
+            className="p-2 -ms-2 text-brand-text hover:opacity-70 transition-opacity"
+            onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={t.header.toggleMenu}
+          >
+            {isMobileMenuOpen ? <X className="w-5 h-5" strokeWidth={1.5} /> : <Menu className="w-5 h-5" strokeWidth={1.5} />}
+          </button>
+          <LanguageSwitcher current={locale} />
+        </div>
 
         {/* Center: Logo */}
         <Link
           href="/"
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-auto"
         >
           <Image
             src="/black logo.png"
@@ -108,8 +110,10 @@ export function Header({ locale }: { locale: Locale }) {
         </Link>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-4 md:gap-6">
-          <LanguageSwitcher current={locale} />
+        <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
+          <div className="hidden lg:block">
+            <LanguageSwitcher current={locale} />
+          </div>
           <button
             onClick={() => setSearchOpen(true)}
             className="p-1 text-brand-text hover:opacity-70 transition-opacity"
