@@ -5,10 +5,10 @@ import { getLocale } from "@/lib/i18n/server";
 import { translateCategoryName } from "@/lib/i18n/products";
 
 const CATEGORY_IMAGES: Record<string, string> = {
-  men: "/category/men1.webp",
-  women: "/category/women1.webp",
-  unisex: "/category/unisex1.webp",
-  combos: "/category/combos1.webp",
+  men: "/categories/men1.webp",
+  women: "/categories/women1.webp",
+  unisex: "/categories/unisex1.webp",
+  combos: "/categories/combos1.webp",
 };
 
 interface CategoryCardProps {

@@ -16,8 +16,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: '/category/:slug*',
-        destination: '/collections/:slug*',
+        source: '/category/:slug((?!.*\\.(?:webp|jpg|jpeg|png|svg|avif|ico|gif)$).*)',
+        destination: '/collections/:slug',
         permanent: true,
       },
     ];
