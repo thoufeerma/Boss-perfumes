@@ -45,10 +45,21 @@ export class PaymobProvider implements PaymentProvider {
     // ----------------------------------------------------
     if (this.secretKey) {
       console.log("[Paymob] Using Intention API...");
+      const paymentMethods = this.integrationId
+        ? this.integrationId
+            .split(",")
+            .map((id) => {
+              const trimmed = id.trim();
+              const num = Number(trimmed);
+              return !isNaN(num) && trimmed !== "" ? num : trimmed;
+            })
+            .filter(Boolean)
+        : undefined;
+
       const payload = {
         amount: amountInCents,
         currency: request.currency,
-        payment_methods: this.integrationId ? [parseInt(this.integrationId, 10)] : undefined,
+        payment_methods: paymentMethods && paymentMethods.length > 0 ? paymentMethods : undefined,
         billing_data: {
           first_name: request.billing?.first_name || request.customerName?.split(" ")[0] || "Customer",
           last_name: request.billing?.last_name || request.customerName?.split(" ").slice(1).join(" ") || "Shopper",

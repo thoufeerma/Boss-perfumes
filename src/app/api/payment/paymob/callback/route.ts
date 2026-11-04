@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PaymobProvider } from "@/lib/payment/paymob";
 import { paymentConfig } from "@/lib/payment/config";
+import { fetchWC } from "@/api/client";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -33,6 +34,27 @@ export async function GET(request: NextRequest) {
 
   if (success) {
     console.log(`[Paymob Callback] Payment succeeded for transaction ${transactionId}, order ${merchantOrderId}`);
+    if (merchantOrderId) {
+      try {
+        await fetchWC(`orders/${merchantOrderId}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            status: "processing",
+            set_paid: true,
+            transaction_id: transactionId || undefined,
+          }),
+        });
+        await fetchWC(`orders/${merchantOrderId}/notes`, {
+          method: "POST",
+          body: JSON.stringify({
+            note: `Paymob payment approved. Transaction ID: ${transactionId || "N/A"}.`,
+            customer_note: false,
+          }),
+        });
+      } catch (err) {
+        console.error(`[Paymob Callback] Failed to update WooCommerce order ${merchantOrderId}:`, err);
+      }
+    }
     const successUrl = new URL("/checkout/success", appUrl);
     if (transactionId) successUrl.searchParams.set("payment_id", transactionId);
     if (merchantOrderId) successUrl.searchParams.set("order_id", merchantOrderId);
