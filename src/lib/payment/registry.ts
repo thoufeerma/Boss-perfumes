@@ -54,6 +54,22 @@ export function paymentMethods(locale: Locale = DEFAULT_LOCALE): PaymentMethodCo
       sortOrder: 4,
       description: m.methods.telr.description,
     },
+    {
+      id: "paymob",
+      name: (m.methods as any).paymob?.name || "Credit / Debit Card (Paymob)",
+      provider: "Paymob",
+      enabled: paymentConfig.paymob.enabled,
+      sortOrder: 5,
+      description: (m.methods as any).paymob?.description || "Cards & Apple Pay via Paymob",
+    },
+    {
+      id: "nomod",
+      name: (m.methods as any).nomod?.name || "Nomod (Cards, Apple Pay)",
+      provider: "Nomod",
+      enabled: paymentConfig.nomod.enabled,
+      sortOrder: 6,
+      description: (m.methods as any).nomod?.description || "Cards, Apple Pay & Google Pay via Nomod",
+    },
   ];
 }
 

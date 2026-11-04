@@ -1,4 +1,13 @@
 import { fetchWC } from "./client";
+import { getScentProfiles } from "./attributes";
+
+const SCENT_SLUG_TO_ID: Record<string, string> = {
+  oriental: "81",
+  floral: "82",
+  fruity: "83",
+  woody: "84",
+  fresh: "85",
+};
 
 export interface WCImage {
   id: number;
@@ -63,7 +72,7 @@ export async function getProductsByCategory(categoryId: number, params?: Record<
 }
 
 export async function getFilteredProducts(filters: Record<string, any>): Promise<WCProduct[]> {
-  const params: Record<string, string> = { per_page: filters.perPage || "24", status: "publish" };
+  const params: Record<string, string> = { per_page: filters.perPage || "20", status: "publish" };
   
   if (filters.page) params.page = filters.page.toString();
   if (filters.category) params.category = filters.category.toString();
@@ -103,6 +112,36 @@ export async function getFilteredProducts(filters: Record<string, any>): Promise
     // Since the site uses the "Brands for WooCommerce" plugin,
     // the REST API expects the 'brand' parameter directly.
     params.brand = filters.brand.toString();
+  }
+
+  if (filters.scent) {
+    const rawTerms = filters.scent.toString().split(",").map((s: string) => s.trim().toLowerCase());
+    const termIds: string[] = [];
+
+    for (const term of rawTerms) {
+      if (/^\d+$/.test(term)) {
+        termIds.push(term);
+      } else if (SCENT_SLUG_TO_ID[term]) {
+        termIds.push(SCENT_SLUG_TO_ID[term]);
+      }
+    }
+
+    if (termIds.length === 0) {
+      try {
+        const profiles = await getScentProfiles();
+        for (const term of rawTerms) {
+          const match = profiles.find(p => p.slug.toLowerCase() === term || p.name.toLowerCase() === term);
+          if (match) termIds.push(match.id.toString());
+        }
+      } catch (e) {
+        console.error("Error resolving scent profiles:", e);
+      }
+    }
+
+    if (termIds.length > 0) {
+      params.attribute = "pa_scent";
+      params.attribute_term = termIds.join(",");
+    }
   }
 
   return fetchWC("products", { params });

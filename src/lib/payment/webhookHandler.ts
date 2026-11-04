@@ -15,6 +15,20 @@ export async function processWebhook(request: NextRequest, providerId?: string) 
         detectedProviderId = "tabby";
       } else if (request.headers.get("x-wc-webhook-signature") || request.headers.get("x-wc-webhook-source")) {
         detectedProviderId = "woopayments";
+      } else if (
+        request.headers.get("hmac") ||
+        request.headers.get("x-paymob-signature") ||
+        request.nextUrl.searchParams.get("hmac") ||
+        rawBody.includes('"TRANSACTION"')
+      ) {
+        detectedProviderId = "paymob";
+      } else if (
+        request.headers.get("x-nomod-signature") ||
+        request.headers.get("nomod-signature") ||
+        request.headers.get("x-signature") ||
+        rawBody.includes("nomod.com")
+      ) {
+        detectedProviderId = "nomod";
       }
       // Add Telr detection here later if needed
     }

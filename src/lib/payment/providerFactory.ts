@@ -3,6 +3,8 @@ import { CheckoutComProvider } from "./checkoutcom";
 import { TelrProvider } from "./telr";
 import { TabbyProvider } from "./tabby";
 import { WooPaymentsProvider } from "./woopayments";
+import { PaymobProvider } from "./paymob";
+import { NomodProvider } from "./nomod";
 import { paymentConfig } from "./config";
 import { getEnabledPaymentMethods } from "./registry";
 
@@ -25,6 +27,10 @@ export function getPaymentProvider(providerId?: string): PaymentProvider {
       return new TelrProvider();
     case "tabby":
       return new TabbyProvider();
+    case "paymob":
+      return new PaymobProvider();
+    case "nomod":
+      return new NomodProvider();
     default:
       throw new Error(`Unsupported payment provider requested: ${selectedProvider}`);
   }

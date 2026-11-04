@@ -1,5 +1,5 @@
 import React from "react";
-import { getProducts } from "@/api/products";
+import { getProducts, WCProduct } from "@/api/products";
 import { getCategoryBySlug } from "@/api/categories";
 import { ProductCard } from "../product/ProductCard";
 import Image from "next/image";
@@ -17,12 +17,14 @@ export async function BestSellers({ data }: BestSellersProps = {}) {
 
   // Fetch "combos" category products dynamically
   const category = await getCategoryBySlug("combos");
-  let products = [];
+  let products: WCProduct[] = [];
   
   if (category) {
     products = await getProducts({ category: category.id.toString(), per_page: "4" });
-  } else {
-    // Fallback if category doesn't exist locally
+  }
+  
+  if (!products || products.length === 0) {
+    // Fallback if category is empty or doesn't exist
     products = await getProducts({ per_page: "4" });
   }
 
@@ -47,7 +49,7 @@ export async function BestSellers({ data }: BestSellersProps = {}) {
   const leftImageAlt = isAr ? "هدايا فاخرة" : (data?.combo_left_background_image?.alt || "Luxury Gifts");
 
   return (
-    <section className="py-20 bg-brand-bg-secondary px-6 lg:px-12 border-y border-brand-border">
+    <section className="relative z-10 py-20 bg-brand-bg-secondary px-6 lg:px-12 border-y border-brand-border">
       <div className="mx-auto max-w-[1600px]">
         
         {/* Section Header */}

@@ -1,6 +1,7 @@
 import { getFilteredProducts } from "@/api/products";
 import { ProductGrid } from "./ProductGrid";
 import { EmptyState } from "../common/EmptyState";
+import { Pagination } from "../common/Pagination";
 import { AlertCircle } from "lucide-react";
 
 interface FilteredProductLoaderProps {
@@ -29,7 +30,18 @@ export async function FilteredProductLoader({ baseFilters = {}, searchParams }: 
       );
     }
 
-    return <ProductGrid products={products} />;
+    const currentPage = Number(searchParams.page) || 1;
+    const hasMore = products.length >= 20;
+    const totalPages = hasMore ? currentPage + 1 : currentPage;
+
+    return (
+      <div className="flex flex-col">
+        <ProductGrid products={products} />
+        {totalPages > 1 && (
+          <Pagination currentPage={currentPage} totalPages={totalPages} />
+        )}
+      </div>
+    );
   } catch (error) {
     // If we updated fetchWC to throw, or if network fails before fetchWC handles it
     return (

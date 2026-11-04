@@ -155,6 +155,12 @@ export function PaymentMethodSelector({ cartData, billingData, selectedMethod, o
                   {method.id === "telr" && (
                     <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Telr</span>
                   )}
+                  {method.id === "paymob" && (
+                    <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Paymob / Cards</span>
+                  )}
+                  {method.id === "nomod" && (
+                    <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Nomod / Apple Pay</span>
+                  )}
                   {method.id === "tabby" && (
                     <Image 
                       src="/tabby logos/Tabby_Badge/Tabby_Badge_SVG.svg" 

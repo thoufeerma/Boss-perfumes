@@ -45,6 +45,12 @@ export function FilterSidebar({
           selectedCategorySlug={selectedCategorySlug} 
         />
 
+        {scents.length > 0 && (
+          <FilterGroup title="Fragrance">
+            <CheckboxFilter paramKey="scent" options={scents} />
+          </FilterGroup>
+        )}
+
         <FilterGroup title="Price">
           <PriceSlider maxProductPrice={maxPrice} baseFilters={baseFilters} />
         </FilterGroup>
@@ -53,21 +59,15 @@ export function FilterSidebar({
           <BudgetFilter baseFilters={baseFilters} />
         </FilterGroup>
 
-        {sizes.length > 0 && (
-          <FilterGroup title="Size">
-            <CheckboxFilter paramKey="size" options={sizes} />
-          </FilterGroup>
-        )}
-
         {brands.length > 0 && (
           <FilterGroup title="Brand">
             <BrandSearch brands={brands} />
           </FilterGroup>
         )}
 
-        {scents.length > 0 && (
-          <FilterGroup title="Scent Profile">
-            <CheckboxFilter paramKey="scent" options={scents} />
+        {sizes.length > 0 && (
+          <FilterGroup title="Size">
+            <CheckboxFilter paramKey="size" options={sizes} />
           </FilterGroup>
         )}
       </div>

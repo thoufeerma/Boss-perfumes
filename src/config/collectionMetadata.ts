@@ -17,11 +17,11 @@ export interface VirtualCollectionConfig {
 export const virtualCollections: Record<string, VirtualCollectionConfig> = {
   luxury: {
     title: "Luxury Collection",
-    subtitle: "Exquisite fragrances above AED 299",
+    subtitle: "Exquisite fragrances above AED 499",
     description: "Discover our premium selection of luxury perfumes crafted with the finest ingredients.",
-    seoDescription: "Shop the luxury perfume collection at Boss Perfumes. Premium fragrances above AED 299.",
+    seoDescription: "Shop the luxury perfume collection at Boss Perfumes. Premium fragrances above AED 499.",
     breadcrumbLabel: "Luxury",
-    baseFilters: { minPrice: "299" }
+    baseFilters: { minPrice: "499" }
   },
   offers: {
     title: "Special Offers",

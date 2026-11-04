@@ -28,5 +28,23 @@ export const paymentConfig = {
     enabled: process.env.NEXT_PUBLIC_WOOPAYMENTS_ENABLED !== "false" && process.env.WOOPAYMENTS_ENABLED !== "false",
     storeUrl: process.env.NEXT_PUBLIC_WC_STORE_URL,
     webhookSecret: process.env.WOOPAYMENTS_WEBHOOK_SECRET,
+  },
+
+  paymob: {
+    enabled: process.env.NEXT_PUBLIC_PAYMOB_ENABLED === "true" || process.env.PAYMOB_ENABLED === "true",
+    apiKey: process.env.PAYMOB_API_KEY,
+    secretKey: process.env.PAYMOB_SECRET_KEY,
+    publicKey: process.env.NEXT_PUBLIC_PAYMOB_PUBLIC_KEY || process.env.PAYMOB_PUBLIC_KEY,
+    integrationId: process.env.NEXT_PUBLIC_PAYMOB_INTEGRATION_ID || process.env.PAYMOB_INTEGRATION_ID,
+    iframeId: process.env.NEXT_PUBLIC_PAYMOB_IFRAME_ID || process.env.PAYMOB_IFRAME_ID,
+    hmacSecret: process.env.PAYMOB_HMAC_SECRET,
+    baseUrl: process.env.NEXT_PUBLIC_PAYMOB_BASE_URL || process.env.PAYMOB_BASE_URL || "https://uae.paymob.com",
+  },
+
+  nomod: {
+    enabled: process.env.NEXT_PUBLIC_NOMOD_ENABLED === "true" || process.env.NOMOD_ENABLED === "true",
+    apiKey: process.env.NOMOD_API_KEY,
+    apiUrl: process.env.NEXT_PUBLIC_NOMOD_API_URL || process.env.NOMOD_API_URL || "https://api.nomod.com/v1",
+    webhookSecret: process.env.NOMOD_WEBHOOK_SECRET,
   }
 };

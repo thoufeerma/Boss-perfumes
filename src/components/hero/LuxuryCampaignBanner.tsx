@@ -67,7 +67,7 @@ export function LuxuryCampaignBanner({ data }: LuxuryCampaignBannerProps) {
   return (
     <section 
       ref={sectionRef} 
-      className="relative w-full h-[100vh] md:h-[200vh] md:mb-[-100vh] md:-z-10 bg-[#111]"
+      className="relative w-full h-[100vh] md:h-[200vh] md:mb-[-100vh] z-0 bg-[#111]"
     >
       {/* Pinned Container */}
       <div className="relative md:sticky top-0 w-full h-[100vh] flex items-center justify-center overflow-hidden">

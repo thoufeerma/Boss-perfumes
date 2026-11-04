@@ -13,10 +13,10 @@ export interface WCCategory {
 }
 
 export async function getCategories(params?: Record<string, string>): Promise<WCCategory[]> {
-  return fetchWC("products/categories", { params, next: { revalidate: 3600 } });
+  return fetchWC("products/categories", { params, next: { revalidate: 60 } });
 }
 
 export async function getCategoryBySlug(slug: string): Promise<WCCategory | null> {
-  const categories = await fetchWC("products/categories", { params: { slug }, next: { revalidate: 3600 } });
+  const categories = await fetchWC("products/categories", { params: { slug }, next: { revalidate: 60 } });
   return categories.length > 0 ? categories[0] : null;
 }

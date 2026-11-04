@@ -7,12 +7,13 @@ export const metadata = {
   title: "Order Details | My Account",
 };
 
-export default async function OrderDetailsPage({ params }: { params: { id: string } }) {
+export default async function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const customer = await requireAuthenticatedCustomer();
   let order: any = null;
 
   try {
-    const fetchedOrder = await fetchWC(`orders/${params.id}`);
+    const fetchedOrder = await fetchWC(`orders/${id}`);
     
     // Verify ownership securely
     if (fetchedOrder && fetchedOrder.customer_id === customer.id) {

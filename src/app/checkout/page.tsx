@@ -20,6 +20,10 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
     errorMessage = m.cancelled;
   } else if (error === "tabby_failed") {
     errorMessage = m.notAvailable;
+  } else if (error === "paymob_cancel" || error === "paymob_failed") {
+    errorMessage = "Paymob transaction was not completed or declined. Please choose a payment method and try again.";
+  } else if (error === "nomod_cancel" || error === "nomod_failed") {
+    errorMessage = "Nomod transaction was not completed or declined. Please choose a payment method and try again.";
   } else if (error) {
     errorMessage = t.checkout.genericPaymentError;
   }
