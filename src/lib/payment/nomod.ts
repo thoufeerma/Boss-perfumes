@@ -25,103 +25,82 @@ export class NomodProvider implements PaymentProvider {
   async createSession(request: PaymentSessionRequest): Promise<PaymentSessionResponse> {
     console.log("[Nomod] Preparing Checkout Session for Order:", request.orderId);
 
-    // If direct API key is not configured, route seamlessly via the WooCommerce Nomod Plugin Order-Pay
-    if (!this.apiKey) {
-      console.log("[Nomod] Direct API key not set. Routing via WooCommerce Nomod Plugin Order-Pay...");
-      const storeUrl = process.env.NEXT_PUBLIC_WC_STORE_URL || "https://cms.bossperfumes.com";
-      const cleanStoreUrl = storeUrl.replace(/\/+$/, "");
-      const orderKeyParam = request.orderKey ? `&key=${encodeURIComponent(request.orderKey)}` : "";
-      let redirectUrl = request.paymentUrl || `${cleanStoreUrl}/checkout/order-pay/${request.orderId}/?pay_for_order=true${orderKeyParam}`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.bossperfumes.com";
+    const successReturnUrl = request.successUrl || `${appUrl}/checkout/success?order_id=${request.orderId}`;
+    const failureReturnUrl = request.failureUrl || request.cancelUrl || `${appUrl}/checkout?error=nomod_failed`;
 
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.bossperfumes.com";
-      const successReturnUrl = request.successUrl || `${appUrl}/checkout/success?order_id=${request.orderId}`;
-      if (!redirectUrl.includes("return_url=")) {
-        redirectUrl += `${redirectUrl.includes("?") ? "&" : "?"}return_url=${encodeURIComponent(successReturnUrl)}`;
-      }
+    // 1. Direct Nomod Links API Flow (using X-API-KEY)
+    if (this.apiKey) {
+      try {
+        console.log("[Nomod] Creating direct payment link via Nomod API...");
+        const items = (request.items || []).map((item: any, idx: number) => {
+          const unitAmount = parseFloat(item.price || item.unit_price || "0").toFixed(2);
+          return {
+            name: item.name || `Item #${idx + 1}`,
+            quantity: item.quantity || 1,
+            amount: unitAmount,
+          };
+        });
 
-      console.log("[Nomod WooCommerce] Redirect URL:", redirectUrl);
-      return {
-        sessionId: `nomod_wc_${request.orderId}`,
-        redirectUrl,
-      };
-    }
+        const amountStr = request.amount.toFixed(2);
+        const payload: any = {
+          currency: request.currency || "AED",
+          title: `Boss Perfumes - Order #${request.orderId}`,
+          note: `Order #${request.orderId}`,
+          items: items.length > 0 ? items : [
+            {
+              name: `Order #${request.orderId}`,
+              amount: amountStr,
+              quantity: 1,
+            }
+          ],
+          success_url: successReturnUrl,
+          failure_url: failureReturnUrl,
+        };
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const amountStr = request.amount.toFixed(2);
+        const res = await fetch(`${this.apiUrl}/links`, {
+          method: "POST",
+          headers: {
+            "X-API-KEY": this.apiKey,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
 
-    const firstName = request.billing?.first_name || request.customerName?.split(" ")[0] || "Customer";
-    const lastName = request.billing?.last_name || request.customerName?.split(" ").slice(1).join(" ") || "";
-    const phone = request.billing?.phone || "+971500000000";
-
-    const items = (request.items || []).map((item: any, idx: number) => {
-      const unitAmount = (parseFloat(item.price || "0")).toFixed(2);
-      const totalAmount = ((parseFloat(item.price || "0")) * (item.quantity || 1)).toFixed(2);
-      return {
-        item_id: item.id ? String(item.id) : `item_${idx + 1}`,
-        name: item.name || "Product",
-        quantity: item.quantity || 1,
-        unit_amount: unitAmount,
-        total_amount: totalAmount,
-        net_amount: totalAmount,
-      };
-    });
-
-    const payload = {
-      reference_id: String(request.orderId),
-      amount: amountStr,
-      currency: request.currency || "AED",
-      customer: {
-        first_name: firstName,
-        last_name: lastName,
-        email: request.customerEmail,
-        phone_number: phone,
-      },
-      items: items.length > 0 ? items : [
-        {
-          item_id: `order_${request.orderId}`,
-          name: `Order #${request.orderId}`,
-          quantity: 1,
-          unit_amount: amountStr,
-          total_amount: amountStr,
-          net_amount: amountStr,
+        if (res.ok) {
+          const data = await res.json();
+          console.log("[Nomod] Payment Link Created Successfully:", data.id, "URL:", data.url);
+          const redirectUrl = data.url || data.link;
+          if (redirectUrl) {
+            return {
+              sessionId: data.id || String(request.orderId),
+              redirectUrl,
+            };
+          }
+        } else {
+          const errorText = await res.text();
+          console.warn("[Nomod] Direct Links API returned error, falling back to WooCommerce order-pay:", errorText);
         }
-      ],
-      success_url: request.successUrl || `${appUrl}/checkout/success?provider=nomod&order_id=${request.orderId}`,
-      failure_url: request.failureUrl || `${appUrl}/checkout?error=nomod_failed`,
-      cancelled_url: request.cancelUrl || `${appUrl}/checkout?error=nomod_cancel`,
-      metadata: {
-        order_id: String(request.orderId),
-        order_key: request.orderKey || "",
-      },
-    };
-
-    const res = await fetch(`${this.apiUrl}/checkout`, {
-      method: "POST",
-      headers: {
-        "X-API-KEY": this.apiKey,
-        "Authorization": `Bearer ${this.apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error("[Nomod] Checkout API Error:", errorText);
-      throw new Error(`Failed to create Nomod checkout session: ${res.statusText} (${errorText})`);
+      } catch (err) {
+        console.error("[Nomod] Direct Links API exception, falling back to WooCommerce order-pay:", err);
+      }
     }
 
-    const data = await res.json();
-    console.log("[Nomod] Checkout Session Created:", data.id);
+    // 2. Fallback to WooCommerce Nomod Plugin Order-Pay URL
+    console.log("[Nomod] Routing via WooCommerce Nomod Plugin Order-Pay...");
+    const storeUrl = process.env.NEXT_PUBLIC_WC_STORE_URL || "https://cms.bossperfumes.com";
+    const cleanStoreUrl = storeUrl.replace(/\/+$/, "");
+    const orderKeyParam = request.orderKey ? `&key=${encodeURIComponent(request.orderKey)}` : "";
+    let redirectUrl = request.paymentUrl || `${cleanStoreUrl}/checkout/order-pay/${request.orderId}/?pay_for_order=true${orderKeyParam}`;
 
-    const redirectUrl = data.url || data.checkout_url || data.link;
-    if (!redirectUrl) {
-      throw new Error("Nomod API did not return a valid checkout redirect URL.");
+    if (!redirectUrl.includes("return_url=")) {
+      redirectUrl += `${redirectUrl.includes("?") ? "&" : "?"}return_url=${encodeURIComponent(successReturnUrl)}`;
     }
 
+    console.log("[Nomod WooCommerce] Redirect URL:", redirectUrl);
     return {
-      sessionId: data.id || String(request.orderId),
-      redirectUrl: redirectUrl,
+      sessionId: `nomod_wc_${request.orderId}`,
+      redirectUrl,
     };
   }
 

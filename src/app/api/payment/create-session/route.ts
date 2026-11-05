@@ -201,6 +201,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Initialize Payment Session
+    const reqOrigin = request.headers.get("origin") || request.nextUrl.origin || process.env.NEXT_PUBLIC_APP_URL || "https://www.bossperfumes.com";
+    const successUrl = `${reqOrigin}/checkout/success?order_id=${orderId}`;
+    const cancelUrl = `${reqOrigin}/checkout?error=cancel`;
+
     const provider = getPaymentProvider(selectedMethod.id);
     const session = await provider.createSession({
       orderId: orderId as number,
@@ -214,7 +218,8 @@ export async function POST(request: NextRequest) {
       customerId: customerId,
       buyerHistory: buyerHistory,
       orderHistory: orderHistory,
-      cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout`,
+      successUrl,
+      cancelUrl,
       locale,
       orderKey: orderResponse?.order_key,
       paymentUrl: orderResponse?.payment_url,
