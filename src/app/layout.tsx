@@ -18,7 +18,7 @@ const cormorant = Cormorant_Garamond({
 const notoKufiArabic = Noto_Kufi_Arabic({
   variable: "--font-arabic",
   subsets: ["arabic"],
-  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
 });
 
 import { Header } from "@/components/layout/Header";
@@ -38,6 +38,7 @@ import { I18nProvider } from "@/components/i18n/I18nProvider";
 import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://www.bossperfumes.com"),
   title: "Boss Perfumes | Luxury Fragrances",
   description: "Discover the luxury collection of Boss Perfumes. Premium, editorial, and timeless.",
   icons: {
