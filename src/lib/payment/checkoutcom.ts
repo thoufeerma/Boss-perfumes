@@ -37,9 +37,9 @@ export class CheckoutComProvider implements PaymentProvider {
       amount: amountInMinorUnits,
       currency: request.currency,
       reference: request.reference || request.orderId.toString(),
-      success_url: request.successUrl || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout/success`,
-      cancel_url: request.cancelUrl || request.failureUrl || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout/failed`,
-      failure_url: request.failureUrl || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout/failed`,
+      success_url: request.successUrl || `${process.env.NEXT_PUBLIC_APP_URL || "https://www.bossperfumes.com"}/checkout/success`,
+      cancel_url: request.cancelUrl || request.failureUrl || `${process.env.NEXT_PUBLIC_APP_URL || "https://www.bossperfumes.com"}/checkout/failed`,
+      failure_url: request.failureUrl || `${process.env.NEXT_PUBLIC_APP_URL || "https://www.bossperfumes.com"}/checkout/failed`,
       processing_channel_id: this.processingChannelId,
       customer: {
         email: request.customerEmail,

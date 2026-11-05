@@ -37,7 +37,7 @@ export class PaymobProvider implements PaymentProvider {
     console.log("[Paymob] Preparing Payment Session...");
 
     const amountInCents = Math.round(request.amount * 100);
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.bossperfumes.com";
     const callbackUrl = `${appUrl}/api/payment/paymob/callback`;
 
     // ----------------------------------------------------

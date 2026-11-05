@@ -104,29 +104,16 @@ export class NomodProvider implements PaymentProvider {
           }
         } else {
           const errorText = await res.text();
-          console.warn("[Nomod] Direct Links API returned error, falling back to WooCommerce order-pay:", errorText);
+          console.error("[Nomod] Direct Links API returned error:", res.status, errorText);
+          throw new Error(`Nomod payment session failed (${res.status}): ${errorText}`);
         }
-      } catch (err) {
-        console.error("[Nomod] Direct Links API exception, falling back to WooCommerce order-pay:", err);
+      } catch (err: any) {
+        console.error("[Nomod] Direct Links API exception:", err);
+        throw new Error(err.message || "Failed to initialize payment with Nomod.");
       }
     }
 
-    // 2. Fallback to WooCommerce Nomod Plugin Order-Pay URL
-    console.log("[Nomod] Routing via WooCommerce Nomod Plugin Order-Pay...");
-    const storeUrl = process.env.NEXT_PUBLIC_WC_STORE_URL || "https://cms.bossperfumes.com";
-    const cleanStoreUrl = storeUrl.replace(/\/+$/, "");
-    const orderKeyParam = request.orderKey ? `&key=${encodeURIComponent(request.orderKey)}` : "";
-    let redirectUrl = request.paymentUrl || `${cleanStoreUrl}/checkout/order-pay/${request.orderId}/?pay_for_order=true${orderKeyParam}`;
-
-    if (!redirectUrl.includes("return_url=")) {
-      redirectUrl += `${redirectUrl.includes("?") ? "&" : "?"}return_url=${encodeURIComponent(successReturnUrl)}`;
-    }
-
-    console.log("[Nomod WooCommerce] Redirect URL:", redirectUrl);
-    return {
-      sessionId: `nomod_wc_${request.orderId}`,
-      redirectUrl,
-    };
+    throw new Error("Nomod API key is not configured.");
   }
 
   /**

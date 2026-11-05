@@ -13,11 +13,17 @@ export async function GET(request: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
 
-  // Optional: Verify HMAC if secret is configured
-  if (paymentConfig.paymob.hmacSecret && hmac) {
+  // Strict HMAC signature verification
+  if (paymentConfig.paymob.hmacSecret) {
+    if (!hmac) {
+      console.warn("[Paymob Callback] Missing required HMAC parameter.");
+      const failureUrl = new URL("/checkout", appUrl);
+      failureUrl.searchParams.set("error", "paymob_unauthorized");
+      return NextResponse.redirect(failureUrl);
+    }
+
     try {
       const provider = new PaymobProvider();
-      // Construct object from search parameters
       const paramsObj: Record<string, any> = {};
       searchParams.forEach((val, key) => {
         paramsObj[key] = val;
@@ -25,11 +31,19 @@ export async function GET(request: NextRequest) {
 
       const calculatedHmac = provider.calculateHmac(paramsObj);
       if (calculatedHmac.toLowerCase() !== hmac.toLowerCase()) {
-        console.warn("[Paymob Callback] HMAC mismatch, potential tampering detected.");
+        console.error("[Paymob Callback] HMAC signature mismatch! Tampering detected.");
+        const failureUrl = new URL("/checkout", appUrl);
+        failureUrl.searchParams.set("error", "paymob_tampered");
+        return NextResponse.redirect(failureUrl);
       }
     } catch (e) {
       console.error("[Paymob Callback] HMAC verification error:", e);
+      const failureUrl = new URL("/checkout", appUrl);
+      failureUrl.searchParams.set("error", "paymob_verification_error");
+      return NextResponse.redirect(failureUrl);
     }
+  } else {
+    console.warn("[Paymob Callback] WARNING: PAYMOB_HMAC_SECRET is not configured. Callback cannot cryptographically verify authenticity.");
   }
 
   if (success) {

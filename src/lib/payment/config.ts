@@ -25,7 +25,7 @@ export const paymentConfig = {
   },
 
   woopayments: {
-    enabled: process.env.NEXT_PUBLIC_WOOPAYMENTS_ENABLED !== "false" && process.env.WOOPAYMENTS_ENABLED !== "false",
+    enabled: process.env.NEXT_PUBLIC_WOOPAYMENTS_ENABLED === "true" || process.env.WOOPAYMENTS_ENABLED === "true",
     storeUrl: process.env.NEXT_PUBLIC_WC_STORE_URL,
     webhookSecret: process.env.WOOPAYMENTS_WEBHOOK_SECRET,
   },

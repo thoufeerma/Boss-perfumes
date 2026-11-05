@@ -193,13 +193,13 @@ export class TabbyProvider implements PaymentProvider {
       lang: locale,
       merchant_code: this.merchantCode,
       merchant_urls: {
-        success: request.successUrl || `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout/success`,
+        success: request.successUrl || `${process.env.NEXT_PUBLIC_APP_URL || "https://www.bossperfumes.com"}/checkout/success`,
         cancel: request.cancelUrl 
             ? (request.cancelUrl.includes('?') ? `${request.cancelUrl}&error=tabby_cancel` : `${request.cancelUrl}?error=tabby_cancel`)
-            : `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout?error=tabby_cancel`,
+            : `${process.env.NEXT_PUBLIC_APP_URL || "https://www.bossperfumes.com"}/checkout?error=tabby_cancel`,
         failure: request.failureUrl 
             ? (request.failureUrl.includes('?') ? `${request.failureUrl}&error=tabby_failed` : `${request.failureUrl}?error=tabby_failed`)
-            : `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/checkout?error=tabby_failed`
+            : `${process.env.NEXT_PUBLIC_APP_URL || "https://www.bossperfumes.com"}/checkout?error=tabby_failed`
       }
     };
 
