@@ -42,7 +42,7 @@ export const paymentConfig = {
   },
 
   nomod: {
-    enabled: process.env.NEXT_PUBLIC_NOMOD_ENABLED === "true" || process.env.NOMOD_ENABLED === "true",
+    enabled: process.env.NEXT_PUBLIC_NOMOD_ENABLED !== "false" && process.env.NOMOD_ENABLED !== "false",
     apiKey: process.env.NOMOD_API_KEY,
     apiUrl: process.env.NEXT_PUBLIC_NOMOD_API_URL || process.env.NOMOD_API_URL || "https://api.nomod.com/v1",
     webhookSecret: process.env.NOMOD_WEBHOOK_SECRET,

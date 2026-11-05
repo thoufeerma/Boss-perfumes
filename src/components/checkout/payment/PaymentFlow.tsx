@@ -82,7 +82,7 @@ export function PaymentFlow() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("woopayments");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("nomod");
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
   
   const [countryQuery, setCountryQuery] = useState("United Arab Emirates (AE)");

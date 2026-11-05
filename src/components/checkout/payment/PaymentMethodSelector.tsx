@@ -96,7 +96,7 @@ export function PaymentMethodSelector({ cartData, billingData, selectedMethod, o
   useEffect(() => {
     const isTabbyVisible = visibleMethods.some(m => m.id === "tabby");
     if (!isTabbyVisible && selectedMethod === "tabby") {
-      const alt = visibleMethods.find(m => m.eligible)?.id || "woopayments";
+      const alt = visibleMethods.find(m => m.eligible)?.id || "nomod";
       onSelect(alt);
     }
   }, [visibleMethods, selectedMethod, onSelect]);
@@ -153,7 +153,7 @@ export function PaymentMethodSelector({ cartData, billingData, selectedMethod, o
                     <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Paymob / Cards</span>
                   )}
                   {method.id === "nomod" && (
-                    <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Nomod / Apple Pay</span>
+                    <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Cards / Apple Pay</span>
                   )}
                   {method.id === "tabby" && (
                     <Image 

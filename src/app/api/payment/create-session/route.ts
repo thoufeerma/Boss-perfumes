@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     // language Tabby's hosted checkout is rendered in.
     const locale = await getLocale();
     const methods = getEnabledPaymentMethods(locale);
-    const selectedMethod = methods.find(m => m.id === paymentMethod) || methods[0] || { id: "woopayments", name: "WooPayments", provider: "WooPayments" };
+    const selectedMethod = methods.find(m => m.id === paymentMethod) || methods[0] || { id: "nomod", name: "Credit / Debit Card & Apple Pay", provider: "Nomod" };
 
     // Market gate, enforced here as well as in isEligible: the client-side eligibility
     // check is advisory, and a stale or hand-rolled request could still ask for Tabby from

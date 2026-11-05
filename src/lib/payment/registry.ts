@@ -23,12 +23,12 @@ export function paymentMethods(locale: Locale = DEFAULT_LOCALE): PaymentMethodCo
 
   return [
     {
-      id: "woopayments",
-      name: m.methods.woopayments.name,
-      provider: "WooPayments",
-      enabled: paymentConfig.woopayments.enabled,
+      id: "nomod",
+      name: (m.methods as any).nomod?.name || "Credit / Debit Card & Apple Pay",
+      provider: "Nomod",
+      enabled: paymentConfig.nomod.enabled,
       sortOrder: 1,
-      description: m.methods.woopayments.description,
+      description: (m.methods as any).nomod?.description || "Cards, Apple Pay & Google Pay via Nomod",
     },
     {
       id: "tabby",
@@ -47,12 +47,12 @@ export function paymentMethods(locale: Locale = DEFAULT_LOCALE): PaymentMethodCo
       description: (m.methods as any).paymob?.description || "Cards & Apple Pay via Paymob",
     },
     {
-      id: "nomod",
-      name: (m.methods as any).nomod?.name || "Nomod (Cards, Apple Pay)",
-      provider: "Nomod",
-      enabled: paymentConfig.nomod.enabled,
+      id: "woopayments",
+      name: m.methods.woopayments.name,
+      provider: "WooPayments",
+      enabled: paymentConfig.woopayments.enabled,
       sortOrder: 4,
-      description: (m.methods as any).nomod?.description || "Cards, Apple Pay & Google Pay via Nomod",
+      description: m.methods.woopayments.description,
     },
   ];
 }

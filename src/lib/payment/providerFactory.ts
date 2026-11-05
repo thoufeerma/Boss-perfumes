@@ -14,7 +14,7 @@ export function getPaymentProvider(providerId?: string): PaymentProvider {
   
   if (!selectedProvider) {
     const enabledMethods = getEnabledPaymentMethods();
-    selectedProvider = enabledMethods.length > 0 ? enabledMethods[0].id : "woopayments";
+    selectedProvider = enabledMethods.length > 0 ? enabledMethods[0].id : "nomod";
   }
 
   switch (selectedProvider.toLowerCase()) {

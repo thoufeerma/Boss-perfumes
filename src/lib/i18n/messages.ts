@@ -21,7 +21,7 @@ const dictionaries = {
       woopayments: { name: "Credit / Debit Card & Apple Pay", description: "Pay securely via WooPayments" },
       telr: { name: "Secure Payment", description: "Secure UAE Payment Gateway" },
       paymob: { name: "Credit / Debit Card & Apple Pay", description: "Pay securely via Paymob" },
-      nomod: { name: "Credit / Debit Card & Apple Pay (Nomod)", description: "Pay securely via Nomod" },
+      nomod: { name: "Credit / Debit Card & Apple Pay", description: "Pay securely with Cards, Apple Pay or Google Pay via Nomod" },
     },
     tabby: {
       methodName: "Pay later with Tabby",
@@ -45,7 +45,7 @@ const dictionaries = {
       woopayments: { name: "بطاقة ائتمان / خصم و أبل باي", description: "الدفع بأمان عبر مدفوعات ووكومرس" },
       telr: { name: "دفع آمن", description: "بوابة دفع إماراتية آمنة" },
       paymob: { name: "بطاقة ائتمان / خصم وأبل باي (باي موب)", description: "الدفع بأمان عبر باي موب" },
-      nomod: { name: "بطاقة ائتمان / خصم وأبل باي (نومود)", description: "الدفع بأمان عبر نومود" },
+      nomod: { name: "بطاقة ائتمان / خصم و أبل باي", description: "الدفع بأمان عبر البطاقات وأبل باي وجوجل باي عبر نومود" },
     },
     tabby: {
       methodName: "ادفع لاحقًا عبر تابي",

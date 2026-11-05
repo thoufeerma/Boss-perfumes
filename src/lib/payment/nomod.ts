@@ -25,8 +25,25 @@ export class NomodProvider implements PaymentProvider {
   async createSession(request: PaymentSessionRequest): Promise<PaymentSessionResponse> {
     console.log("[Nomod] Preparing Checkout Session for Order:", request.orderId);
 
+    // If direct API key is not configured, route seamlessly via the WooCommerce Nomod Plugin Order-Pay
     if (!this.apiKey) {
-      throw new Error("Nomod API key is not configured. Please set NOMOD_API_KEY in .env.local.");
+      console.log("[Nomod] Direct API key not set. Routing via WooCommerce Nomod Plugin Order-Pay...");
+      const storeUrl = process.env.NEXT_PUBLIC_WC_STORE_URL || "https://cms.bossperfumes.com";
+      const cleanStoreUrl = storeUrl.replace(/\/+$/, "");
+      const orderKeyParam = request.orderKey ? `&key=${encodeURIComponent(request.orderKey)}` : "";
+      let redirectUrl = request.paymentUrl || `${cleanStoreUrl}/checkout/order-pay/${request.orderId}/?pay_for_order=true${orderKeyParam}`;
+
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.bossperfumes.com";
+      const successReturnUrl = request.successUrl || `${appUrl}/checkout/success?order_id=${request.orderId}`;
+      if (!redirectUrl.includes("return_url=")) {
+        redirectUrl += `${redirectUrl.includes("?") ? "&" : "?"}return_url=${encodeURIComponent(successReturnUrl)}`;
+      }
+
+      console.log("[Nomod WooCommerce] Redirect URL:", redirectUrl);
+      return {
+        sessionId: `nomod_wc_${request.orderId}`,
+        redirectUrl,
+      };
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
