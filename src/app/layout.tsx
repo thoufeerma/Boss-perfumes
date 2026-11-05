@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Cormorant_Garamond, Noto_Kufi_Arabic } from "next/font/google";
+import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -11,14 +11,6 @@ const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
-});
-
-// Neither Inter nor Cormorant Garamond ships Arabic glyphs, so Arabic text would fall back
-// to whatever the device happens to have. This keeps the Arabic storefront on brand.
-const notoKufiArabic = Noto_Kufi_Arabic({
-  variable: "--font-arabic",
-  subsets: ["arabic"],
-  display: "swap",
 });
 
 import { Header } from "@/components/layout/Header";
@@ -60,8 +52,12 @@ export default async function RootLayout({
     <html
       lang={locale}
       dir={dirFor(locale)}
-      className={`${inter.variable} ${cormorant.variable} ${notoKufiArabic.variable} h-full antialiased scroll-smooth`}
+      className={`${inter.variable} ${cormorant.variable} h-full antialiased scroll-smooth`}
     >
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
       <body className="min-h-full flex flex-col selection:bg-brand-accent selection:text-white">
         <I18nProvider locale={locale} dictionary={getDictionary(locale)}>
           <AuthProvider isAuthenticated={isAuthenticated}>
