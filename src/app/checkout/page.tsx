@@ -29,9 +29,9 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
   }
 
   return (
-    <div className="pt-32 pb-24 px-4 sm:px-6 lg:px-12 bg-brand-bg min-h-screen">
-      <div className="mx-auto max-w-5xl">
-        <h1 className="text-3xl md:text-4xl font-serif text-brand-text mb-8 text-center">{t.checkout.title}</h1>
+    <div className="pt-32 pb-24 px-4 sm:px-6 lg:px-8 xl:px-12 bg-brand-bg min-h-screen">
+      <div className="mx-auto max-w-7xl">
+        <h1 className="text-3xl md:text-4xl font-serif text-brand-text mb-10 text-center">{t.checkout.title}</h1>
         
         {errorMessage && (
           <div className="mb-8 p-4 bg-red-50 border border-red-200 text-red-600 text-sm text-center">
@@ -39,12 +39,12 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row gap-12 lg:gap-24">
-          <div className="w-full lg:w-2/3">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-14 items-start">
+          <div className="lg:col-span-7 xl:col-span-7">
             <PaymentFlow />
           </div>
 
-          <div className="w-full lg:w-1/3">
+          <div className="lg:col-span-5 xl:col-span-5">
             <CheckoutSummary />
           </div>
         </div>

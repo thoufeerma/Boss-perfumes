@@ -34,7 +34,7 @@ export function CheckoutSummary() {
     : Math.max(0, parseInt(cart.totals.total_price || "0", 10) - totalTaxMinor - totalShippingMinor);
 
   return (
-    <div className="bg-brand-surface border border-brand-border p-6 sm:p-8 sticky top-32">
+    <div className="bg-brand-surface border border-brand-border p-6 sm:p-8 sticky top-32 shadow-xs">
       <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-border">
         <h2 className="text-sm font-medium tracking-widest uppercase text-brand-text">
           {t.summary.orderSummary}
@@ -102,18 +102,18 @@ export function CheckoutSummary() {
 
               {/* Product Details & Tax Breakdown */}
               <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-start gap-2">
+                <div className="flex justify-between items-start gap-3">
                   <div className="min-w-0">
-                    <h3 className="font-serif text-sm font-medium text-brand-text leading-snug line-clamp-2">
+                    <h3 className="font-serif text-sm font-medium text-brand-text leading-snug">
                       {localizedName}
                     </h3>
-                    {qty > 1 ? (
+                    {qty > 1 && (
                       <div className="text-xs text-brand-text-muted mt-0.5">
                         {locale === "ar"
                           ? `${qty} × ${formatPrice(unitGrossMinor, itemCurrency, itemDivisor)}`
                           : `${qty} × ${formatPrice(unitGrossMinor, itemCurrency, itemDivisor)}`}
                       </div>
-                    ) : null}
+                    )}
                   </div>
                   <div className="text-end flex-shrink-0">
                     <span className="font-medium text-brand-text text-sm whitespace-nowrap">
@@ -122,31 +122,30 @@ export function CheckoutSummary() {
                   </div>
                 </div>
 
-                {/* Per-item VAT breakdown */}
-                <div className="mt-2 pt-1.5 border-t border-brand-border/30 text-[11px] text-brand-text-muted flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                  <span>
-                    {locale === "ar" ? "غير شامل الضريبة:" : "Excl. VAT:"}{" "}
+                {/* Per-item VAT breakdown: Each on its own dedicated clean line */}
+                <div className="mt-2 pt-1.5 border-t border-brand-border/30 text-[11px] text-brand-text-muted flex flex-col gap-1">
+                  <div className="whitespace-nowrap">
+                    <span>{locale === "ar" ? "غير شامل الضريبة:" : "Excl. VAT:"}</span>{" "}
                     <span className="font-medium text-brand-text">
                       {formatPrice(qty > 1 ? lineNetMinor : unitNetMinor, itemCurrency, itemDivisor)}
                     </span>
                     {qty > 1 && (
-                      <span className="text-[10px] text-brand-text-muted ms-1">
+                      <span className="text-brand-text-muted ms-1">
                         ({formatPrice(unitNetMinor, itemCurrency, itemDivisor)} {locale === "ar" ? "للقطعة" : "ea"})
                       </span>
                     )}
-                  </span>
-                  <span className="text-brand-border">•</span>
-                  <span>
-                    {locale === "ar" ? "الضريبة (5%):" : "5% VAT:"}{" "}
+                  </div>
+                  <div className="whitespace-nowrap">
+                    <span>{locale === "ar" ? "ضريبة القيمة المضافة (5%):" : "5% VAT:"}</span>{" "}
                     <span className="font-medium text-brand-text">
                       {formatPrice(qty > 1 ? lineTaxMinor : unitTaxMinor, itemCurrency, itemDivisor)}
                     </span>
                     {qty > 1 && (
-                      <span className="text-[10px] text-brand-text-muted ms-1">
+                      <span className="text-brand-text-muted ms-1">
                         ({formatPrice(unitTaxMinor, itemCurrency, itemDivisor)} {locale === "ar" ? "للقطعة" : "ea"})
                       </span>
                     )}
-                  </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -198,10 +197,10 @@ export function CheckoutSummary() {
 
         <div className="border-t border-brand-border my-1" />
 
-        {/* Final Total */}
+        {/* Final Total - Consistent sans font matching above prices */}
         <div className="flex justify-between items-baseline">
-          <span className="font-medium tracking-widest uppercase text-sm">{t.summary.total}</span>
-          <span className="text-xl sm:text-2xl font-serif font-medium text-brand-text">
+          <span className="font-medium tracking-widest uppercase text-sm text-brand-text">{t.summary.total}</span>
+          <span className="text-xl sm:text-2xl font-semibold tracking-tight text-brand-text">
             {formatPrice(cart.totals.total_price, currency, divisor)}
           </span>
         </div>
