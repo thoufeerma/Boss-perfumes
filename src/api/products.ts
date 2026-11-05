@@ -24,6 +24,9 @@ export interface WCProduct {
   sale_price: string;
   on_sale: boolean;
   currency?: string;
+  price_html?: string;
+  tax_status?: string;
+  tax_class?: string;
   stock_status?: string;
   average_rating?: string;
   review_count?: number;
@@ -46,8 +49,68 @@ export interface WCProduct {
   cross_sell_ids: number[];
 }
 
+/**
+ * Normalizes WooCommerce product prices so that customer-facing prices
+ * are displayed inclusive of the UAE standard 5% VAT.
+ *
+ * When WooCommerce has 'woocommerce_prices_include_tax' = 'no', the REST API
+ * returns raw ex-tax prices in `price`, `regular_price`, and `sale_price`.
+ * Under UAE Federal Tax Authority rules (and matching WooCommerce setting
+ * 'woocommerce_tax_display_shop' = 'incl'), retail shop prices must be displayed
+ * inclusive of 5% VAT.
+ */
+export function normalizeProduct(product: any): WCProduct {
+  if (!product || typeof product !== "object") return product;
+
+  const isTaxable = product.tax_status === "taxable";
+  if (!isTaxable) {
+    return product as WCProduct;
+  }
+
+  const addTax = (val: string | number | undefined): string => {
+    if (!val) return "";
+    const num = parseFloat(String(val));
+    if (isNaN(num) || num <= 0) return "";
+    return (Math.round(num * 1.05 * 100) / 100).toFixed(2);
+  };
+
+  // If WooCommerce pre-rendered price_html is present, extract the exact inclusive shop price
+  let displayPrice = "";
+  if (product.price_html) {
+    const insMatch = product.price_html.match(/<ins[^>]*>.*?<bdi>(?:<span[^>]*>[^<]*<\/span>)?([\d,.]+)/);
+    if (insMatch) {
+      displayPrice = insMatch[1].replace(/,/g, "");
+    } else {
+      const match = product.price_html.match(/<bdi>(?:<span[^>]*>[^<]*<\/span>)?([\d,.]+)/);
+      if (match) {
+        displayPrice = match[1].replace(/,/g, "");
+      }
+    }
+  }
+
+  if (!displayPrice) {
+    displayPrice = addTax(product.price);
+  }
+
+  const displayRegularPrice = addTax(product.regular_price) || displayPrice;
+  const displaySalePrice = product.sale_price ? addTax(product.sale_price) : "";
+
+  return {
+    ...product,
+    price: displayPrice,
+    regular_price: displayRegularPrice,
+    sale_price: displaySalePrice,
+  };
+}
+
+export function normalizeProducts(products: any): WCProduct[] {
+  if (!Array.isArray(products)) return [];
+  return products.map(normalizeProduct);
+}
+
 export async function getProducts(params?: Record<string, string>): Promise<WCProduct[]> {
-  return fetchWC("products", { params });
+  const products = await fetchWC("products", { params });
+  return normalizeProducts(products);
 }
 
 export async function getFeaturedProducts(limit = 6): Promise<WCProduct[]> {
@@ -55,20 +118,22 @@ export async function getFeaturedProducts(limit = 6): Promise<WCProduct[]> {
   const featured = await fetchWC("products", { params: { featured: "true", per_page: limit.toString() } });
   
   if (featured && featured.length > 0) {
-    return featured;
+    return normalizeProducts(featured);
   }
   
   // Fallback: just return the latest products if no featured products exist
-  return fetchWC("products", { params: { per_page: limit.toString() } });
+  const fallback = await fetchWC("products", { params: { per_page: limit.toString() } });
+  return normalizeProducts(fallback);
 }
 
 export async function getProductBySlug(slug: string): Promise<WCProduct | null> {
   const products = await fetchWC("products", { params: { slug } });
-  return products.length > 0 ? products[0] : null;
+  return products && products.length > 0 ? normalizeProduct(products[0]) : null;
 }
 
 export async function getProductsByCategory(categoryId: number, params?: Record<string, string>): Promise<WCProduct[]> {
-  return fetchWC("products", { params: { category: categoryId.toString(), ...params } });
+  const products = await fetchWC("products", { params: { category: categoryId.toString(), ...params } });
+  return normalizeProducts(products);
 }
 
 export async function getFilteredProducts(filters: Record<string, any>): Promise<WCProduct[]> {
@@ -76,8 +141,15 @@ export async function getFilteredProducts(filters: Record<string, any>): Promise
   
   if (filters.page) params.page = filters.page.toString();
   if (filters.category) params.category = filters.category.toString();
-  if (filters.minPrice) params.min_price = filters.minPrice.toString();
-  if (filters.maxPrice) params.max_price = filters.maxPrice.toString();
+  if (filters.minPrice) {
+    // Convert tax-inclusive filter bound back to base net price for WooCommerce database query
+    const netMin = Math.floor(parseFloat(filters.minPrice) / 1.05);
+    params.min_price = netMin.toString();
+  }
+  if (filters.maxPrice) {
+    const netMax = Math.ceil(parseFloat(filters.maxPrice) / 1.05);
+    params.max_price = netMax.toString();
+  }
   if (filters.onSale) params.on_sale = "true";
   if (filters.featured) params.featured = "true";
   if (filters.search) params.search = filters.search.toString();
@@ -144,12 +216,14 @@ export async function getFilteredProducts(filters: Record<string, any>): Promise
     }
   }
 
-  return fetchWC("products", { params });
+  const products = await fetchWC("products", { params });
+  return normalizeProducts(products);
 }
 
 export async function getProductsByIds(ids: number[]): Promise<WCProduct[]> {
   if (!ids || ids.length === 0) return [];
-  return fetchWC("products", { params: { include: ids.join(","), per_page: ids.length.toString() } });
+  const products = await fetchWC("products", { params: { include: ids.join(","), per_page: ids.length.toString() } });
+  return normalizeProducts(products);
 }
 
 export async function getRelatedProducts(productId: number): Promise<WCProduct[]> {

@@ -35,7 +35,12 @@ export class NomodProvider implements PaymentProvider {
         console.log("[Nomod] Creating direct payment link via Nomod API...");
         const items = (request.items || []).map((item: any, idx: number) => {
           let rawPrice = 0;
-          if (item.prices?.price) {
+          if (item.totals?.line_total && item.totals?.line_total_tax !== undefined) {
+            const lineTot = parseInt(item.totals.line_total, 10) || 0;
+            const lineTax = parseInt(item.totals.line_total_tax, 10) || 0;
+            const divisor = 10 ** (item.totals.currency_minor_unit ?? item.prices?.currency_minor_unit ?? 2);
+            rawPrice = (lineTot + lineTax) / (item.quantity || 1) / divisor;
+          } else if (item.prices?.price) {
             const divisor = 10 ** (item.prices.currency_minor_unit ?? 2);
             rawPrice = parseFloat(item.prices.price) / divisor;
           } else if (item.price || item.unit_price) {

@@ -176,9 +176,18 @@ export class TabbyProvider implements PaymentProvider {
               reference_id: item.sku || item.product_id?.toString() || item.id?.toString(),
               title: item.name || item.title || "Product",
               quantity: item.quantity || 1,
-              unit_price: item.prices?.price
-                ? (parseFloat(item.prices.price) / (10 ** (item.prices.currency_minor_unit || 2))).toFixed(2)
-                : (parseFloat(item.price || "0")).toFixed(2),
+              unit_price: (() => {
+                if (item.totals?.line_total && item.totals?.line_total_tax !== undefined) {
+                  const lineTot = parseInt(item.totals.line_total, 10) || 0;
+                  const lineTax = parseInt(item.totals.line_total_tax, 10) || 0;
+                  const divisor = 10 ** (item.totals.currency_minor_unit ?? item.prices?.currency_minor_unit ?? 2);
+                  return ((lineTot + lineTax) / (item.quantity || 1) / divisor).toFixed(2);
+                }
+                if (item.prices?.price) {
+                  return (parseFloat(item.prices.price) / (10 ** (item.prices.currency_minor_unit || 2))).toFixed(2);
+                }
+                return (parseFloat(item.price || "0")).toFixed(2);
+              })(),
               discount_amount: "0.00",
               ...(imageUrl ? { image_url: imageUrl } : {}),
               ...(productUrl ? { product_url: productUrl } : {}),

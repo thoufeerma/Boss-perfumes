@@ -103,7 +103,12 @@ export function CartDrawer() {
                       <span className="text-xs uppercase tracking-widest text-brand-text-muted">{item.sku}</span>
                     </div>
                     <span className="font-medium text-brand-text">
-                      {formatPrice(item.prices?.price, item.prices?.currency_code, 10 ** (item.prices?.currency_minor_unit || 2))}
+                      {(() => {
+                        const itemPriceMinor = (item.totals?.line_total && item.totals?.line_total_tax !== undefined)
+                          ? Math.round((parseInt(item.totals.line_total, 10) + parseInt(item.totals.line_total_tax, 10)) / (item.quantity || 1))
+                          : parseInt(item.prices?.price || "0", 10);
+                        return formatPrice(itemPriceMinor.toString(), item.prices?.currency_code, 10 ** (item.prices?.currency_minor_unit || 2));
+                      })()}
                     </span>
                   </div>
                   
@@ -159,7 +164,9 @@ export function CartDrawer() {
               );
             })()}
 
-            <p className="text-brand-text-muted text-xs mb-6 text-center">{t.cart.taxNote}</p>
+            <p className="text-brand-text-muted text-xs mb-6 text-center">
+              {locale === "ar" ? "شامل ضريبة القيمة المضافة 5%. يتم حساب الشحن عند إتمام الدفع." : "Includes 5% VAT. Shipping calculated at checkout."}
+            </p>
             <Link
               href="/checkout"
               onClick={() => setCartOpen(false)}

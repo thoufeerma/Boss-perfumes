@@ -20,6 +20,15 @@ export interface CartItem {
     currency_code: string;
     currency_minor_unit: number;
   };
+  totals?: {
+    line_subtotal: string;
+    line_subtotal_tax: string;
+    line_total: string;
+    line_total_tax: string;
+    currency_code: string;
+    currency_symbol: string;
+    currency_minor_unit: number;
+  };
 }
 
 export interface CartData {

@@ -76,12 +76,24 @@ export class PaymobProvider implements PaymentProvider {
         },
         special_reference: request.orderId.toString(),
         redirection_url: callbackUrl,
-        items: (request.items || []).map((item: any) => ({
-          name: item.name || "Product",
-          amount: Math.round((parseFloat(item.price || "0")) * 100) || amountInCents,
-          description: item.name || "Item",
-          quantity: item.quantity || 1,
-        })),
+        items: (request.items || []).map((item: any) => {
+          let itemCents = 0;
+          if (item.totals?.line_total && item.totals?.line_total_tax !== undefined) {
+            const lineTot = parseInt(item.totals.line_total, 10) || 0;
+            const lineTax = parseInt(item.totals.line_total_tax, 10) || 0;
+            itemCents = Math.round((lineTot + lineTax) / (item.quantity || 1));
+          } else if (item.prices?.price) {
+            itemCents = parseInt(item.prices.price, 10);
+          } else {
+            itemCents = Math.round((parseFloat(item.price || "0")) * 100);
+          }
+          return {
+            name: item.name || "Product",
+            amount: itemCents || amountInCents,
+            description: item.name || "Item",
+            quantity: item.quantity || 1,
+          };
+        }),
       };
 
       const res = await fetch(`${this.baseUrl}/v1/intention/`, {
