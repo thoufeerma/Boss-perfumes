@@ -34,26 +34,51 @@ export class NomodProvider implements PaymentProvider {
       try {
         console.log("[Nomod] Creating direct payment link via Nomod API...");
         const items = (request.items || []).map((item: any, idx: number) => {
-          const unitAmount = parseFloat(item.price || item.unit_price || "0").toFixed(2);
+          let rawPrice = 0;
+          if (item.prices?.price) {
+            const divisor = 10 ** (item.prices.currency_minor_unit ?? 2);
+            rawPrice = parseFloat(item.prices.price) / divisor;
+          } else if (item.price || item.unit_price) {
+            rawPrice = parseFloat(item.price || item.unit_price);
+          }
+          const unitAmount = isNaN(rawPrice) || rawPrice <= 0 ? 0 : rawPrice;
           return {
             name: item.name || `Item #${idx + 1}`,
             quantity: item.quantity || 1,
-            amount: unitAmount,
+            amount: unitAmount.toFixed(2),
           };
         });
 
-        const amountStr = request.amount.toFixed(2);
+        // Ensure every line item has a valid positive amount and sum matches the order total
+        const validItems = items.filter(it => parseFloat(it.amount) > 0);
+        const validSum = validItems.reduce((acc, it) => acc + (parseFloat(it.amount) * it.quantity), 0);
+        const targetAmount = request.amount;
+
+        let finalItems = validItems;
+        if (finalItems.length === 0 || Math.abs(validSum - targetAmount) > 0.01) {
+          if (finalItems.length > 0 && targetAmount > validSum) {
+            const diff = (targetAmount - validSum).toFixed(2);
+            finalItems.push({
+              name: "Shipping & Taxes",
+              quantity: 1,
+              amount: diff,
+            });
+          } else {
+            finalItems = [
+              {
+                name: `Order #${request.orderId}`,
+                quantity: 1,
+                amount: targetAmount.toFixed(2),
+              }
+            ];
+          }
+        }
+
         const payload: any = {
           currency: request.currency || "AED",
           title: `Boss Perfumes - Order #${request.orderId}`,
           note: `Order #${request.orderId}`,
-          items: items.length > 0 ? items : [
-            {
-              name: `Order #${request.orderId}`,
-              amount: amountStr,
-              quantity: 1,
-            }
-          ],
+          items: finalItems,
           success_url: successReturnUrl,
           failure_url: failureReturnUrl,
         };
