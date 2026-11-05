@@ -57,7 +57,7 @@ export default async function TermsPage() {
 
             <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">5. وسائل الدفع والأمان</h2>
             <p className="mb-6">
-              نقبل الدفع ببطاقات فيزا وماستركارد بالإضافة إلى وسائل الدفع المعتمدة الأخرى (مثل تابي للمدفوعات الميسرة). وتتم معالجة جميع المعاملات المالية بأعلى معايير التشفير والأمان عبر بوابات دفع معتمدة وموثوقة (Checkout.com و Telr). نحن لا نقوم بتخزين تفاصيل بطاقاتك الائتمانية الكاملة على خوادمنا نهائياً.
+              نقبل الدفع ببطاقات فيزا وماستركارد بالإضافة إلى وسائل الدفع المعتمدة الأخرى (مثل تابي للمدفوعات الميسرة). وتتم معالجة جميع المعاملات المالية بأعلى معايير التشفير والأمان عبر بوابات دفع معتمدة وموثوقة. نحن لا نقوم بتخزين تفاصيل بطاقاتك الائتمانية الكاملة على خوادمنا نهائياً.
             </p>
 
             <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">6. الشحن والاسترجاع واسترداد الأموال</h2>
@@ -124,7 +124,7 @@ export default async function TermsPage() {
 
           <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">5. Payment</h2>
           <p className="mb-6">
-            We accept Visa and Mastercard payments. All payments are processed securely. Your payment information is encrypted and transmitted securely to our payment processors (Checkout.com, Telr). 
+            We accept Visa and Mastercard payments. All payments are processed securely. Your payment information is encrypted and transmitted securely to our payment processors. 
             We do not store your full credit card details on our servers.
           </p>
 

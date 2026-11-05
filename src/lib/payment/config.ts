@@ -1,6 +1,6 @@
 export const paymentConfig = {
   checkoutcom: {
-    enabled: process.env.NEXT_PUBLIC_CHECKOUT_ENABLED !== "false" && process.env.CHECKOUT_ENABLED !== "false",
+    enabled: false,
     publicKey: process.env.NEXT_PUBLIC_CHECKOUT_PUBLIC_KEY || process.env.CHECKOUT_PUBLIC_KEY,
     secretKey: process.env.CHECKOUT_SECRET_KEY,
     processingChannelId: process.env.CHECKOUT_PROCESSING_CHANNEL_ID,
@@ -17,7 +17,7 @@ export const paymentConfig = {
   },
 
   telr: {
-    enabled: process.env.NEXT_PUBLIC_TELR_ENABLED === "true" || process.env.TELR_ENABLED === "true",
+    enabled: false,
     storeId: process.env.NEXT_PUBLIC_TELR_STORE_ID || process.env.TELR_STORE_ID,
     authKey: process.env.TELR_AUTH_KEY,
     gatewayUrl: process.env.NEXT_PUBLIC_TELR_GATEWAY_URL || process.env.TELR_GATEWAY_URL || "https://secure.telr.com/gateway/order.json",

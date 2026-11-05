@@ -49,7 +49,7 @@ export default async function PrivacyPage() {
 
             <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">4. أمان الدفع ومزودو الخدمات من الأطراف الثالثة</h2>
             <p className="mb-6">
-              نضع أمان معاملاتكم المالية على رأس أولوياتنا. تتم معالجة جميع المدفوعات بشكل مشفر وآمن عبر مزودي خدمات الدفع المعتمدين والموثوقين لدينا (Checkout.com و Telr و Tabby). كما نعتمد بروتوكولات مصادقة وتشفير متقدمة JWT لتأمين الحسابات. لا نقوم بتخزين تفاصيل بطاقاتك الائتمانية الكاملة على خوادمنا نهائياً؛ بل يتم تشفيرها وإرسالها مباشرة إلى بوابات الدفع.
+              نضع أمان معاملاتكم المالية على رأس أولوياتنا. تتم معالجة جميع المدفوعات بشكل مشفر وآمن عبر مزودي خدمات الدفع المعتمدين والموثوقين لدينا. كما نعتمد بروتوكولات مصادقة وتشفير متقدمة JWT لتأمين الحسابات. لا نقوم بتخزين تفاصيل بطاقاتك الائتمانية الكاملة على خوادمنا نهائياً؛ بل يتم تشفيرها وإرسالها مباشرة إلى بوابات الدفع.
             </p>
 
             <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">5. بيانات العملاء عبر ووكومرس (WooCommerce)</h2>
@@ -109,7 +109,7 @@ export default async function PrivacyPage() {
 
           <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">4. Payment Security & Third-Party Providers</h2>
           <p className="mb-6">
-            We prioritize the security of your transactions. All payments are processed securely through our trusted third-party payment providers (Checkout.com, Telr). 
+            We prioritize the security of your transactions. All payments are processed securely through our trusted third-party payment providers. 
             We utilize secure JWT authentication for account access. We do not store your complete credit card information on our servers; it is encrypted and transmitted directly to the payment gateways.
           </p>
 

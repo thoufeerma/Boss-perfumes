@@ -23,19 +23,11 @@ export function paymentMethods(locale: Locale = DEFAULT_LOCALE): PaymentMethodCo
 
   return [
     {
-      id: "checkoutcom",
-      name: m.methods.card.name,
-      provider: "Checkout.com",
-      enabled: paymentConfig.checkoutcom.enabled,
-      sortOrder: 1,
-      description: m.methods.card.description,
-    },
-    {
       id: "woopayments",
       name: m.methods.woopayments.name,
       provider: "WooPayments",
       enabled: paymentConfig.woopayments.enabled,
-      sortOrder: 2,
+      sortOrder: 1,
       description: m.methods.woopayments.description,
     },
     {
@@ -43,23 +35,15 @@ export function paymentMethods(locale: Locale = DEFAULT_LOCALE): PaymentMethodCo
       name: m.tabby.methodName,
       provider: "Tabby",
       enabled: paymentConfig.tabby.enabled,
-      sortOrder: 3,
+      sortOrder: 2,
       description: "",
-    },
-    {
-      id: "telr",
-      name: m.methods.telr.name,
-      provider: "Telr",
-      enabled: paymentConfig.telr.enabled,
-      sortOrder: 4,
-      description: m.methods.telr.description,
     },
     {
       id: "paymob",
       name: (m.methods as any).paymob?.name || "Credit / Debit Card (Paymob)",
       provider: "Paymob",
       enabled: paymentConfig.paymob.enabled,
-      sortOrder: 5,
+      sortOrder: 3,
       description: (m.methods as any).paymob?.description || "Cards & Apple Pay via Paymob",
     },
     {
@@ -67,7 +51,7 @@ export function paymentMethods(locale: Locale = DEFAULT_LOCALE): PaymentMethodCo
       name: (m.methods as any).nomod?.name || "Nomod (Cards, Apple Pay)",
       provider: "Nomod",
       enabled: paymentConfig.nomod.enabled,
-      sortOrder: 6,
+      sortOrder: 4,
       description: (m.methods as any).nomod?.description || "Cards, Apple Pay & Google Pay via Nomod",
     },
   ];

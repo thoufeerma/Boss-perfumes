@@ -96,7 +96,7 @@ export function PaymentMethodSelector({ cartData, billingData, selectedMethod, o
   useEffect(() => {
     const isTabbyVisible = visibleMethods.some(m => m.id === "tabby");
     if (!isTabbyVisible && selectedMethod === "tabby") {
-      const alt = visibleMethods.find(m => m.eligible)?.id || "checkoutcom";
+      const alt = visibleMethods.find(m => m.eligible)?.id || "woopayments";
       onSelect(alt);
     }
   }, [visibleMethods, selectedMethod, onSelect]);
@@ -146,14 +146,8 @@ export function PaymentMethodSelector({ cartData, billingData, selectedMethod, o
                 
                 {/* Visual Indicators/Logos */}
                 <div className="flex gap-2 items-center flex-shrink-0 ms-2">
-                  {method.id === "checkoutcom" && (
-                    <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Visa / MC</span>
-                  )}
                   {method.id === "woopayments" && (
                     <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Cards / Apple Pay</span>
-                  )}
-                  {method.id === "telr" && (
-                    <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Telr</span>
                   )}
                   {method.id === "paymob" && (
                     <span className="text-xs text-brand-text-muted border px-1 border-brand-border uppercase tracking-widest">Paymob / Cards</span>

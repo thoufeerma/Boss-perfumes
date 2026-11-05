@@ -9,12 +9,12 @@ import { paymentConfig } from "./config";
 import { getEnabledPaymentMethods } from "./registry";
 
 export function getPaymentProvider(providerId?: string): PaymentProvider {
-  // If no providerId passed, fallback to first enabled one, or checkoutcom
+  // If no providerId passed, fallback to first enabled one, or woopayments
   let selectedProvider = providerId;
   
   if (!selectedProvider) {
     const enabledMethods = getEnabledPaymentMethods();
-    selectedProvider = enabledMethods.length > 0 ? enabledMethods[0].id : "checkoutcom";
+    selectedProvider = enabledMethods.length > 0 ? enabledMethods[0].id : "woopayments";
   }
 
   switch (selectedProvider.toLowerCase()) {

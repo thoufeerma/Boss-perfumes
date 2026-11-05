@@ -74,9 +74,13 @@ export default async function RootLayout({
             </CartProvider>
           </AuthProvider>
         </I18nProvider>
-        <Toaster position="bottom-right" toastOptions={{
-          style: { background: '#111111', color: '#fff', border: 'none', borderRadius: '8px' }
-        }} />
+        <Toaster 
+          position="top-center" 
+          toastOptions={{
+            style: { background: '#111111', color: '#fff', border: 'none', borderRadius: '8px' },
+            duration: 2500,
+          }} 
+        />
       </body>
     </html>
   );
