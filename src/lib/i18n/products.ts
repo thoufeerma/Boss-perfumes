@@ -1,23 +1,26 @@
 import { type Locale } from "./config";
+import { decodeHtmlEntities } from "@/lib/utils";
 
 /**
  * Product Name:
- * Preserves the original product name as set in WooCommerce (e.g. brand names, luxury titles).
+ * Preserves the original product name as set in WooCommerce (e.g. brand names, luxury titles)
+ * and decodes any HTML entities (e.g. &#8217; -> ').
  */
 export function translateProductName(name: string | undefined | null, _locale?: Locale): string {
-  return name || "";
+  return decodeHtmlEntities(name || "");
 }
 
 /**
  * Product Description:
- * Preserves the original product description as authored in WooCommerce.
+ * Preserves the original product description as authored in WooCommerce
+ * and decodes any HTML entities.
  */
 export function translateProductDescription(
   desc: string | undefined | null,
   _locale?: Locale,
   _fallbackName?: string
 ): string {
-  return desc || "";
+  return decodeHtmlEntities(desc || "");
 }
 
 /**

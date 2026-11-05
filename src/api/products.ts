@@ -1,5 +1,6 @@
 import { fetchWC } from "./client";
 import { getScentProfiles } from "./attributes";
+import { decodeHtmlEntities } from "@/lib/utils";
 
 const SCENT_SLUG_TO_ID: Record<string, string> = {
   oriental: "81",
@@ -62,9 +63,13 @@ export interface WCProduct {
 export function normalizeProduct(product: any): WCProduct {
   if (!product || typeof product !== "object") return product;
 
+  const cleanName = product.name ? decodeHtmlEntities(product.name) : product.name;
   const isTaxable = product.tax_status === "taxable";
   if (!isTaxable) {
-    return product as WCProduct;
+    return {
+      ...product,
+      name: cleanName,
+    } as WCProduct;
   }
 
   const addTax = (val: string | number | undefined): string => {
@@ -97,6 +102,7 @@ export function normalizeProduct(product: any): WCProduct {
 
   return {
     ...product,
+    name: cleanName,
     price: displayPrice,
     regular_price: displayRegularPrice,
     sale_price: displaySalePrice,

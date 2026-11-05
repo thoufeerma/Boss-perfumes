@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { getAuthToken } from "@/lib/auth";
+import { decodeHtmlEntities } from "@/lib/utils";
 
 export interface CartItem {
   key: string;
@@ -215,12 +216,24 @@ async function updateCartCookies(headers: { cartToken: string | null; nonce: str
   }
 }
 
+function normalizeCartData(data: CartData | null): CartData | null {
+  if (!data || !Array.isArray(data.items)) return data;
+  return {
+    ...data,
+    items: data.items.map((item) => ({
+      ...item,
+      name: decodeHtmlEntities(item.name),
+      short_description: decodeHtmlEntities(item.short_description),
+    })),
+  };
+}
+
 export async function getCart(): Promise<CartData | null> {
   try {
     const { data } = await fetchStoreApi("cart");
     // We do NOT update cookies here because getCart is called from Server Components (e.g. Layout)
     // where cookies().set() throws an error.
-    return data;
+    return normalizeCartData(data);
   } catch (error) {
     console.error("Failed to get cart:", error);
     return null;
@@ -238,7 +251,7 @@ export async function addToCart(productId: number, quantity: number = 1): Promis
     });
     
     await updateCartCookies(headers);
-    return data;
+    return normalizeCartData(data);
   } catch (error) {
     console.error("Failed to add to cart:", error);
     throw error;
@@ -256,7 +269,7 @@ export async function updateItemQuantity(key: string, quantity: number): Promise
     });
     
     await updateCartCookies(headers);
-    return data;
+    return normalizeCartData(data);
   } catch (error) {
     console.error("Failed to update item quantity:", error);
     throw error;
@@ -274,7 +287,7 @@ export async function removeItem(key: string): Promise<CartData | null> {
     });
     
     await updateCartCookies(headers);
-    return data;
+    return normalizeCartData(data);
   } catch (error) {
     console.error("Failed to remove item:", error);
     throw error;
