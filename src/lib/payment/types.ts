@@ -15,6 +15,7 @@ export interface PaymentSessionRequest {
   billing?: Record<string, any>;
   shipping?: Record<string, any>;
   items?: any[];
+  shippingAmount?: number;
   customerId?: number;
   buyerHistory?: any;
   orderHistory?: any[];

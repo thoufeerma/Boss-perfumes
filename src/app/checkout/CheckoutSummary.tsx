@@ -189,9 +189,9 @@ export function CheckoutSummary() {
           <span className="font-medium text-brand-text">
             {totalShippingMinor > 0
               ? formatPrice(totalShippingMinor, currency, divisor)
-              : locale === "ar"
-              ? "مجاني"
-              : "Free"}
+              : cart.totals.total_shipping === null
+              ? (locale === "ar" ? "يُحسب عند إدخال العنوان" : "Calculated at checkout")
+              : (locale === "ar" ? "مجاني" : "Free")}
           </span>
         </div>
 

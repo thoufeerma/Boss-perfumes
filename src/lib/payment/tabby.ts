@@ -163,7 +163,7 @@ export class TabbyProvider implements PaymentProvider {
         order: {
           reference_id: request.reference || request.orderId.toString(),
           tax_amount: "0.00",
-          shipping_amount: "0.00",
+          shipping_amount: (request.shippingAmount || 0).toFixed(2),
           discount_amount: "0.00",
           updated_at: new Date().toISOString(),
           items: request.items ? request.items.map(item => {

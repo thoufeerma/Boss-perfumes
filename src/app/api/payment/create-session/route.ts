@@ -6,7 +6,7 @@ import { paymentMessages } from "@/lib/i18n/messages";
 import { getLocale } from "@/lib/i18n/server";
 import { cookies } from "next/headers";
 import { fetchWC } from "@/api/client";
-import { getCart, clearCart } from "@/api/cart";
+import { getCart, clearCart, updateCustomerAddress } from "@/api/cart";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
@@ -58,6 +58,49 @@ export async function POST(request: NextRequest) {
 
     const wcPaymentMethod = selectedMethod.id === "woopayments" ? "woocommerce_payments" : selectedMethod.id;
 
+    // Sync customer address to WooCommerce Store API cart to calculate exact shipping rates
+    let currentCart = cartData;
+    try {
+      const syncRes = await updateCustomerAddress({
+        country: shipping?.country || billing?.country || "AE",
+        city: shipping?.city || billing?.city || "Dubai",
+        postcode: shipping?.postcode || billing?.postcode || "",
+        address_1: shipping?.address_1 || billing?.address_1 || "",
+        first_name: shipping?.first_name || billing?.first_name || "",
+        last_name: shipping?.last_name || billing?.last_name || "",
+        phone: billing?.phone || "",
+        email: billing?.email || "",
+      });
+      if (syncRes) {
+        currentCart = syncRes;
+      }
+    } catch (e) {
+      console.warn("[Create Session] Failed to sync address to cart:", e);
+    }
+
+    // Extract calculated shipping lines
+    const shippingLines: any[] = [];
+    const selectedPackage = currentCart.shipping_rates?.[0];
+    const selectedRate = selectedPackage?.shipping_rates?.find((r: any) => r.selected) || selectedPackage?.shipping_rates?.[0];
+
+    if (selectedRate) {
+      const divisor = 10 ** (selectedRate.currency_minor_unit || 2);
+      const ratePriceMajor = (parseInt(selectedRate.price || "0", 10) / divisor).toFixed(2);
+      shippingLines.push({
+        method_id: selectedRate.method_id || "flat_rate",
+        method_title: selectedRate.name || "Standard Shipping",
+        total: ratePriceMajor,
+      });
+    } else if (currentCart.totals?.total_shipping && parseInt(currentCart.totals.total_shipping, 10) > 0) {
+      const divisor = 10 ** (currentCart.totals.currency_minor_unit || 2);
+      const shipPriceMajor = (parseInt(currentCart.totals.total_shipping, 10) / divisor).toFixed(2);
+      shippingLines.push({
+        method_id: "flat_rate",
+        method_title: "Standard Shipping",
+        total: shipPriceMajor,
+      });
+    }
+
     orderId = existingOrderId;
     let orderResponse: any = null;
 
@@ -71,6 +114,7 @@ export async function POST(request: NextRequest) {
         billing: billing,
         shipping: shipping || billing,
         line_items: lineItems,
+        shipping_lines: shippingLines,
         meta_data: [
           { key: "_payment_provider", value: selectedMethod.provider }
         ]
@@ -97,6 +141,7 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           payment_method: wcPaymentMethod,
           payment_method_title: selectedMethod.name,
+          shipping_lines: shippingLines,
           meta_data: [
             { key: "_payment_provider", value: selectedMethod.provider },
             { key: "_transaction_id", value: "" }, // Clear stale transaction
@@ -114,9 +159,8 @@ export async function POST(request: NextRequest) {
         customer_note: false
       })
     });
-    const amountInMinorUnits = parseInt(cartData.totals.total_price || "0", 10);
-    const minorUnitDivisor = 10 ** (cartData.totals.currency_minor_unit || 2);
-    const standardAmount = amountInMinorUnits / minorUnitDivisor;
+    const standardAmount = orderResponse?.total ? parseFloat(orderResponse.total) : (parseInt(currentCart.totals.total_price || "0", 10) / (10 ** (currentCart.totals.currency_minor_unit || 2)));
+    const shippingAmount = orderResponse?.shipping_total ? parseFloat(orderResponse.shipping_total) : (parseInt(currentCart.totals.total_shipping || "0", 10) / (10 ** (currentCart.totals.currency_minor_unit || 2)));
 
     let buyerHistory: any = {
       registered_since: new Date().toISOString(),
@@ -209,12 +253,13 @@ export async function POST(request: NextRequest) {
     const session = await provider.createSession({
       orderId: orderId as number,
       amount: standardAmount,
-      currency: cartData.totals.currency_code || "AED",
+      shippingAmount: shippingAmount,
+      currency: orderResponse?.currency || currentCart.totals.currency_code || "AED",
       customerEmail: billing.email || "",
       customerName: `${billing.first_name || ""} ${billing.last_name || ""}`.trim(),
       billing: billing,
       shipping: shipping || billing,
-      items: cartData.items || [],
+      items: currentCart.items || [],
       customerId: customerId,
       buyerHistory: buyerHistory,
       orderHistory: orderHistory,

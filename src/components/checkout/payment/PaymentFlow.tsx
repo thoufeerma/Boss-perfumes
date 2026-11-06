@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { MerchantDisclosure } from "./MerchantDisclosure";
 import { useCustomerStore } from "@/store/customer-store";
 import { useCartContext } from "@/components/cart/CartProvider";
-import { addToCart } from "@/api/cart";
+import { addToCart, updateCustomerAddress } from "@/api/cart";
 import { PaymentMethodSelector } from "./PaymentMethodSelector";
 import { useT } from "@/components/i18n/I18nProvider";
 
@@ -182,8 +182,47 @@ export function PaymentFlow() {
     }
   }, [profile]);
 
+  // Helper to sync customer address to WooCommerce Store API cart
+  const syncAddressToCart = useCallback(async (countryCode?: string, cityVal?: string) => {
+    try {
+      const country = countryCode || form.country || "AE";
+      const city = cityVal !== undefined ? cityVal : (form.city || (country === "AE" ? "Dubai" : ""));
+      const updated = await updateCustomerAddress({
+        country,
+        city,
+        postcode: form.postcode,
+        address_1: form.address_1,
+        first_name: form.first_name,
+        last_name: form.last_name,
+        phone: form.phone,
+        email: form.email,
+      });
+      if (updated) {
+        setCart(updated);
+      }
+    } catch (e) {
+      console.error("[PaymentFlow] Failed to sync shipping address:", e);
+    }
+  }, [form.country, form.city, form.postcode, form.address_1, form.first_name, form.last_name, form.phone, form.email, setCart]);
+
+  // Initial cart shipping calculation on checkout load
+  useEffect(() => {
+    if (cart && cart.items && cart.items.length > 0) {
+      const hasShipping = cart.totals?.total_shipping !== null && cart.totals?.total_shipping !== undefined;
+      if (!hasShipping) {
+        syncAddressToCart(form.country || "AE", form.city || "Dubai");
+      }
+    }
+  }, [cart, form.country, form.city, syncAddressToCart]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (e.target.name === "city" || e.target.name === "postcode" || e.target.name === "address_1") {
+      syncAddressToCart(form.country, form.city);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -311,9 +350,9 @@ export function PaymentFlow() {
         <div className="grid grid-cols-2 gap-4">
           <input type="text" name="first_name" required value={form.first_name} onChange={handleInputChange} placeholder={t.checkout.fields.firstName} className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
           <input type="text" name="last_name" required value={form.last_name} onChange={handleInputChange} placeholder={t.checkout.fields.lastName} className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
-          <input type="text" name="address_1" required value={form.address_1} onChange={handleInputChange} placeholder={t.checkout.fields.address} className="col-span-2 w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
-          <input type="text" name="city" required value={form.city} onChange={handleInputChange} placeholder={t.checkout.fields.city} className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
-          <input type="text" name="postcode" required value={form.postcode} onChange={handleInputChange} placeholder={t.checkout.fields.postcode} className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
+          <input type="text" name="address_1" required value={form.address_1} onChange={handleInputChange} onBlur={handleInputBlur} placeholder={t.checkout.fields.address} className="col-span-2 w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
+          <input type="text" name="city" required value={form.city} onChange={handleInputChange} onBlur={handleInputBlur} placeholder={t.checkout.fields.city} className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
+          <input type="text" name="postcode" required value={form.postcode} onChange={handleInputChange} onBlur={handleInputBlur} placeholder={t.checkout.fields.postcode} className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors" />
           <div className="col-span-2 relative" ref={countryRef}>
             {(() => {
               const selectedCountryObj = COUNTRIES.find(c => c.code === form.country);
@@ -347,7 +386,8 @@ export function PaymentFlow() {
                         c.name.toLowerCase() === val.trim().toLowerCase() || 
                         c.code.toLowerCase() === val.trim().toLowerCase()
                       );
-                      setForm(prev => ({ ...prev, country: matched ? matched.code : (val.trim() ? val.trim().toUpperCase() : "") }));
+                      const newCode = matched ? matched.code : (val.trim() ? val.trim().toUpperCase() : "");
+                      setForm(prev => ({ ...prev, country: newCode }));
                     }}
                     onBlur={() => {
                       setTimeout(() => {
@@ -359,6 +399,7 @@ export function PaymentFlow() {
                         if (matched) {
                           setForm(prev => ({ ...prev, country: matched.code }));
                           setCountryQuery(`${matched.name} (${matched.code})`);
+                          syncAddressToCart(matched.code, form.city);
                         }
                       }, 200);
                     }}
@@ -389,9 +430,11 @@ export function PaymentFlow() {
                               }`}
                               onMouseDown={(e) => {
                                 e.preventDefault();
-                                setForm(prev => ({ ...prev, country: c.code }));
-                                setCountryQuery(`${c.name} (${c.code})`);
+                                const newCode = c.code;
+                                setForm(prev => ({ ...prev, country: newCode }));
+                                setCountryQuery(`${c.name} (${newCode})`);
                                 setShowCountryDropdown(false);
+                                syncAddressToCart(newCode, form.city);
                               }}
                             >
                               <span>{c.name} ({c.code})</span>

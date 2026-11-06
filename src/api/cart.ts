@@ -52,6 +52,27 @@ export interface CartData {
     currency_symbol: string;
     currency_minor_unit: number;
   };
+  shipping_address?: Record<string, any>;
+  billing_address?: Record<string, any>;
+  shipping_rates?: Array<{
+    package_id: number;
+    name: string;
+    destination?: Record<string, any>;
+    items?: Array<{ key: string; name: string; quantity: number }>;
+    shipping_rates?: Array<{
+      rate_id: string;
+      name: string;
+      description?: string;
+      delivery_time?: string;
+      price: string;
+      taxes: string;
+      instance_id?: number;
+      method_id: string;
+      selected?: boolean;
+      currency_code?: string;
+      currency_minor_unit?: number;
+    }>;
+  }>;
 }
 
 const CART_TOKEN_COOKIE = "wc_cart_token";
@@ -251,10 +272,80 @@ export async function addToCart(productId: number, quantity: number = 1): Promis
     });
     
     await updateCartCookies(headers);
+
+    // If shipping is not yet computed, sync default UAE country and city so WooCommerce calculates shipping rates
+    if (data && (!data.totals?.total_shipping || data.totals?.total_shipping === "0")) {
+      try {
+        const updateRes = await fetchStoreApi("cart/update-customer", {
+          method: "POST",
+          headers: {
+            ...(headers.cartToken ? { "Cart-Token": headers.cartToken } : {}),
+            ...(headers.nonce ? { "Nonce": headers.nonce } : {}),
+          },
+          body: JSON.stringify({
+            shipping_address: { country: "AE", city: "Dubai" },
+            billing_address: { country: "AE", city: "Dubai" }
+          })
+        });
+        await updateCartCookies(updateRes.headers);
+        return normalizeCartData(updateRes.data);
+      } catch {
+        // Fall back to original cart data if update-customer fails
+      }
+    }
+
     return normalizeCartData(data);
   } catch (error) {
     console.error("Failed to add to cart:", error);
     throw error;
+  }
+}
+
+export async function updateCustomerAddress(address: {
+  country?: string;
+  city?: string;
+  postcode?: string;
+  address_1?: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  email?: string;
+}): Promise<CartData | null> {
+  try {
+    const country = address.country || "AE";
+    const city = address.city || (country === "AE" ? "Dubai" : "");
+    const payload = {
+      shipping_address: {
+        country,
+        city,
+        postcode: address.postcode || "",
+        address_1: address.address_1 || "",
+        first_name: address.first_name || "",
+        last_name: address.last_name || "",
+        phone: address.phone || "",
+      },
+      billing_address: {
+        country,
+        city,
+        postcode: address.postcode || "",
+        address_1: address.address_1 || "",
+        first_name: address.first_name || "",
+        last_name: address.last_name || "",
+        phone: address.phone || "",
+        email: address.email || "",
+      },
+    };
+
+    const { data, headers } = await fetchStoreApi("cart/update-customer", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    await updateCartCookies(headers);
+    return normalizeCartData(data);
+  } catch (error) {
+    console.error("[Cart API] Failed to update customer address:", error);
+    return null;
   }
 }
 

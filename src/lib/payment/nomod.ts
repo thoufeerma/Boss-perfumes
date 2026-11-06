@@ -64,7 +64,7 @@ export class NomodProvider implements PaymentProvider {
           if (finalItems.length > 0 && targetAmount > validSum) {
             const diff = (targetAmount - validSum).toFixed(2);
             finalItems.push({
-              name: "Shipping & Taxes",
+              name: (request.shippingAmount && request.shippingAmount > 0) ? "Shipping" : "Shipping & Taxes",
               quantity: 1,
               amount: diff,
             });
