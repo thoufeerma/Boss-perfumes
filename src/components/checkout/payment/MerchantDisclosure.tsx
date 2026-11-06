@@ -11,13 +11,7 @@ export function MerchantDisclosure() {
 
   return (
     <div className="bg-brand-surface border border-brand-border p-6 mb-8 text-sm text-brand-text-muted space-y-4">
-      <div className="border-b border-brand-border pb-4">
-        <h4 className="font-medium text-brand-text mb-2">Boss General Trading LLC</h4>
-        <p>Shop No: 11 & 12, Al Zarouni Building, Near Kuwait Mosque, Al Dhagaya Street, Deira, Dubai, UAE</p>
-        <p className="mt-2 text-xs">{t.merchant.priceNotice}</p>
-      </div>
-      
-      <div className="py-2">
+      <div>
         <PaymentMethods />
       </div>
 
