@@ -116,7 +116,8 @@ export async function POST(request: NextRequest) {
         line_items: lineItems,
         shipping_lines: shippingLines,
         meta_data: [
-          { key: "_payment_provider", value: selectedMethod.provider }
+          { key: "_payment_provider", value: selectedMethod.provider },
+          ...(cartToken ? [{ key: "_wc_cart_token", value: cartToken }] : []),
         ]
       };
 
@@ -144,6 +145,7 @@ export async function POST(request: NextRequest) {
           shipping_lines: shippingLines,
           meta_data: [
             { key: "_payment_provider", value: selectedMethod.provider },
+            ...(cartToken ? [{ key: "_wc_cart_token", value: cartToken }] : []),
             { key: "_transaction_id", value: "" }, // Clear stale transaction
             { key: "_session_id", value: "" } // Clear stale session
           ]
@@ -270,40 +272,13 @@ export async function POST(request: NextRequest) {
       paymentUrl: orderResponse?.payment_url,
     });
 
-    // 5. Server-side cart clear before redirecting.
-    // In Tabby's Corner Case Flow, the customer completes payment on Tabby's hosted
-    // checkout and closes the browser tab before the redirect back to /checkout/success.
-    // We clear the WooCommerce cart items on the server BEFORE returning the Tabby session
-    // URL so that no client redirect can outrun the clear.
-    try {
-      await clearCart();
-      if (customerId && customerId > 0) {
-        try {
-          await fetchWC(`customers/${customerId}`, {
-            method: "PUT",
-            body: JSON.stringify({
-              meta_data: [
-                { key: "_woocommerce_persistent_cart", value: "" },
-                { key: "_woocommerce_persistent_cart_1", value: "" },
-              ],
-            }),
-          });
-          console.log(`[Create Session] Cleared persistent cart for customer ${customerId}`);
-        } catch (err) {
-          console.warn(`[Create Session] Could not clear customer ${customerId} persistent cart:`, err);
-        }
-      }
-    } catch (err) {
-      console.error("[Create Session] Failed to clear cart server-side:", err);
-    }
-
-    cookieStore.delete("wc_cart_token");
-    cookieStore.delete("wc_store_nonce");
-
-    const res = NextResponse.json({ ...session, orderId });
-    res.cookies.set("wc_cart_token", "", { path: "/", maxAge: 0, expires: new Date(0) });
-    res.cookies.set("wc_store_nonce", "", { path: "/", maxAge: 0, expires: new Date(0) });
-    return res;
+    // Keep the WooCommerce cart active during payment attempt.
+    // If the payment fails or is cancelled, the customer's cart remains completely intact.
+    // Cart clearing upon successful payment is handled:
+    // 1. Immediately on the /checkout/success page via ClearCartEffect.
+    // 2. Server-side via webhookHandler when the gateway confirms AUTHORIZED / COMPLETED,
+    //    fulfilling Tabby's Corner Case even if the customer closes their browser tab.
+    return NextResponse.json({ ...session, orderId });
 
   } catch (error: any) {
     console.error("Create session error:", error);

@@ -19,7 +19,7 @@ function PaymentFlowSkeleton() {
           <div className="h-14 w-full bg-brand-surface border border-brand-border"></div>
         </div>
       </section>
-      
+
       <section>
         <div className="h-4 w-40 bg-brand-border mb-6"></div>
         <div className="grid grid-cols-2 gap-4">
@@ -81,63 +81,25 @@ export function PaymentFlow() {
   const { cart, setCart, refreshCart } = useCartContext();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("nomod");
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
-  
+
   const [countryQuery, setCountryQuery] = useState("United Arab Emirates (AE)");
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const countryRef = useRef<HTMLDivElement>(null);
-  const isRestoringRef = useRef(false);
 
+  // Restore createdOrderId if customer returned from a failed/cancelled payment
   useEffect(() => {
-    // If the customer returns from a cancelled or failed payment, restore items to cart
     if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const err = params.get("error");
-      if (
-        err === "tabby_cancel" ||
-        err === "tabby_failed" ||
-        err === "woopayments_cancel" ||
-        err === "woopayments_failed" ||
-        err === "paymob_failed" ||
-        err === "paymob_cancel" ||
-        err === "nomod_failed" ||
-        err === "nomod_cancel" ||
-        err === "cancel"
-      ) {
-        if (isRestoringRef.current) return;
-        const backup = sessionStorage.getItem("boss_pending_cart_backup");
-        if (backup) {
-          try {
-            const items = JSON.parse(backup);
-            if (Array.isArray(items) && items.length > 0) {
-              isRestoringRef.current = true;
-              (async () => {
-                try {
-                  for (const it of items) {
-                    await addToCart(it.id, it.quantity).catch(console.error);
-                  }
-                  await refreshCart();
-                  // Only remove snapshot after successful restoration so page refresh won't lose items
-                  sessionStorage.removeItem("boss_pending_cart_backup");
-                } catch (e) {
-                  console.error("Failed to restore cart from backup:", e);
-                } finally {
-                  isRestoringRef.current = false;
-                }
-              })();
-            }
-          } catch (e) {
-            console.error("Failed to restore cart from backup:", e);
-          }
+      try {
+        const savedOrderId = sessionStorage.getItem("boss_pending_order_id");
+        if (savedOrderId) {
+          setCreatedOrderId(parseInt(savedOrderId, 10));
         }
-      } else {
-        // Corner case or normal flow: discard backup
-        sessionStorage.removeItem("boss_pending_cart_backup");
-      }
+      } catch {}
     }
-  }, [refreshCart]);
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -148,7 +110,7 @@ export function PaymentFlow() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  
+
   const [form, setForm] = useState({
     email: "",
     phone: "",
@@ -271,21 +233,12 @@ export function PaymentFlow() {
         }
       }
 
-      // Snapshot cart backup BEFORE create-session so cancel/failure recovery is guaranteed
-      if (cart && cart.items && cart.items.length > 0) {
-        try {
-          sessionStorage.setItem("boss_pending_cart_backup", JSON.stringify(cart.items));
-        } catch {
-          // ignore
-        }
-      }
-
-      // 2. Create payment session (the server clears WooCommerce cart before returning redirectUrl)
+      // 2. Create payment session
       const response = await fetch("/api/payment/create-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          billing, 
+        body: JSON.stringify({
+          billing,
           shipping,
           paymentMethod: selectedPaymentMethod,
           existingOrderId: createdOrderId
@@ -294,16 +247,21 @@ export function PaymentFlow() {
 
       const data = await response.json();
 
+      if (data.orderId) {
+        setCreatedOrderId(data.orderId);
+        try {
+          sessionStorage.setItem("boss_pending_order_id", data.orderId.toString());
+        } catch {}
+      }
+
       if (!response.ok) {
-        if (data.orderId) {
-          // If order was created but session failed, save the orderId so we don't duplicate on retry
-          setCreatedOrderId(data.orderId);
-        }
         throw new Error(data.message || data.error || "Failed to initiate payment");
       }
 
       if (data.redirectUrl) {
-        setCart(null);
+        // Keep the cart intact during the payment redirect.
+        // If payment succeeds, /checkout/success and the webhook will clear the cart.
+        // If payment fails/cancels, customer returns with cart completely intact.
         window.location.href = data.redirectUrl;
       } else {
         throw new Error("No redirect URL returned from payment provider");
@@ -324,27 +282,27 @@ export function PaymentFlow() {
       <section>
         <h2 className="text-sm font-medium tracking-widest uppercase text-brand-text mb-6">{t.checkout.contactInformation}</h2>
         <div className="space-y-4">
-          <input 
-            type="email" 
+          <input
+            type="email"
             name="email"
             required
             value={form.email}
             onChange={handleInputChange}
-            placeholder={t.checkout.fields.email} 
+            placeholder={t.checkout.fields.email}
             className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors"
           />
-          <input 
-            type="tel" 
+          <input
+            type="tel"
             name="phone"
             required
             value={form.phone}
             onChange={handleInputChange}
-            placeholder={t.checkout.fields.mobile} 
+            placeholder={t.checkout.fields.mobile}
             className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors"
           />
         </div>
       </section>
-      
+
       <section>
         <h2 className="text-sm font-medium tracking-widest uppercase text-brand-text mb-6">{t.checkout.shippingAddress}</h2>
         <div className="grid grid-cols-2 gap-4">
@@ -366,15 +324,15 @@ export function PaymentFlow() {
 
               const filteredCountries = (!countryQuery.trim() || isSelectedValue)
                 ? COUNTRIES
-                : COUNTRIES.filter(c => 
-                    c.name.toLowerCase().includes(countryQuery.toLowerCase()) || 
-                    c.code.toLowerCase().includes(countryQuery.toLowerCase())
-                  );
+                : COUNTRIES.filter(c =>
+                  c.name.toLowerCase().includes(countryQuery.toLowerCase()) ||
+                  c.code.toLowerCase().includes(countryQuery.toLowerCase())
+                );
 
               return (
                 <>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder={t.checkout.fields.country}
                     required
                     value={countryQuery}
@@ -382,8 +340,8 @@ export function PaymentFlow() {
                       const val = e.target.value;
                       setCountryQuery(val);
                       setShowCountryDropdown(true);
-                      const matched = COUNTRIES.find(c => 
-                        c.name.toLowerCase() === val.trim().toLowerCase() || 
+                      const matched = COUNTRIES.find(c =>
+                        c.name.toLowerCase() === val.trim().toLowerCase() ||
                         c.code.toLowerCase() === val.trim().toLowerCase()
                       );
                       const newCode = matched ? matched.code : (val.trim() ? val.trim().toUpperCase() : "");
@@ -391,8 +349,8 @@ export function PaymentFlow() {
                     }}
                     onBlur={() => {
                       setTimeout(() => {
-                        const matched = COUNTRIES.find(c => 
-                          c.name.toLowerCase() === countryQuery.trim().toLowerCase() || 
+                        const matched = COUNTRIES.find(c =>
+                          c.name.toLowerCase() === countryQuery.trim().toLowerCase() ||
                           c.code.toLowerCase() === countryQuery.trim().toLowerCase() ||
                           countryQuery.toLowerCase().includes(c.name.toLowerCase())
                         );
@@ -410,24 +368,23 @@ export function PaymentFlow() {
                     onClick={() => setShowCountryDropdown(true)}
                     className="w-full bg-brand-surface border border-brand-border p-4 focus:outline-none focus:border-brand-text transition-colors cursor-pointer"
                   />
-                  <div 
+                  <div
                     className="absolute inset-y-0 right-4 flex items-center cursor-pointer text-brand-text"
                     onClick={() => setShowCountryDropdown(prev => !prev)}
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-200 ${showCountryDropdown ? "rotate-180" : ""}`}><polyline points="6 9 12 15 18 9"></polyline></svg>
                   </div>
-                  
+
                   {showCountryDropdown && (
                     <div className="absolute z-10 w-full mt-1 bg-brand-surface border border-brand-border shadow-lg max-h-60 overflow-auto">
                       {filteredCountries.length > 0 ? (
                         filteredCountries.map(c => {
                           const isSelected = form.country === c.code;
                           return (
-                            <div 
+                            <div
                               key={c.code}
-                              className={`p-4 cursor-pointer hover:bg-gray-50 text-sm border-b border-brand-border/30 last:border-0 flex items-center justify-between transition-colors ${
-                                isSelected ? "bg-brand-bg-secondary font-medium text-brand-text" : "text-brand-text"
-                              }`}
+                              className={`p-4 cursor-pointer hover:bg-gray-50 text-sm border-b border-brand-border/30 last:border-0 flex items-center justify-between transition-colors ${isSelected ? "bg-brand-bg-secondary font-medium text-brand-text" : "text-brand-text"
+                                }`}
                               onMouseDown={(e) => {
                                 e.preventDefault();
                                 const newCode = c.code;
@@ -460,11 +417,11 @@ export function PaymentFlow() {
       </section>
 
       <section>
-        <PaymentMethodSelector 
-          cartData={cart} 
+        <PaymentMethodSelector
+          cartData={cart}
           billingData={form}
-          selectedMethod={selectedPaymentMethod} 
-          onSelect={setSelectedPaymentMethod} 
+          selectedMethod={selectedPaymentMethod}
+          onSelect={setSelectedPaymentMethod}
         />
         <div className="bg-brand-surface border border-brand-border p-6 text-center text-brand-text-muted text-sm mb-6 mt-6">
           {t.checkout.redirectNotice}
@@ -478,8 +435,8 @@ export function PaymentFlow() {
         </div>
       )}
 
-      <button 
-        type="submit" 
+      <button
+        type="submit"
         disabled={isProcessing}
         className="w-full bg-brand-text text-white py-4 text-sm font-medium tracking-widest uppercase hover:bg-brand-accent transition-colors duration-300 disabled:opacity-50"
       >

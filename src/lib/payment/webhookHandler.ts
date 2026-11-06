@@ -106,6 +106,24 @@ export async function processWebhook(request: NextRequest, providerId?: string) 
             console.warn(`[Webhook] Failed to clear persistent cart for customer ${currentOrder.customer_id}:`, err);
           }
         }
+
+        // Tabby Corner Case & Headless session cart cleanup:
+        // Empties Store API cart items associated with this session token once payment is confirmed
+        const orderCartToken = currentOrder.meta_data?.find((m: any) => m.key === "_wc_cart_token")?.value;
+        if (orderCartToken) {
+          try {
+            const storeUrl = process.env.NEXT_PUBLIC_WC_STORE_URL;
+            if (storeUrl) {
+              await fetch(new URL("wp-json/wc/store/v1/cart/items", storeUrl).toString(), {
+                method: "DELETE",
+                headers: { "Cart-Token": orderCartToken }
+              });
+              console.log(`[Webhook] Emptied Store API cart for session ${orderCartToken.slice(0, 10)}...`);
+            }
+          } catch (err) {
+            console.warn("[Webhook] Failed to clear Store API cart items:", err);
+          }
+        }
         break;
       case "cancelled":
       case "failed":
