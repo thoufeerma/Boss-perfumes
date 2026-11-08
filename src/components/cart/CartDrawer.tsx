@@ -146,36 +146,40 @@ export function CartDrawer() {
         </div>
 
         {/* Footer */}
-        {cart && cart.items && cart.items.length > 0 && cart.totals && (
-          <div className="p-6 lg:p-8 border-t border-brand-border bg-brand-bg">
-            <div className="flex justify-between text-brand-text mb-6">
-              <span className="uppercase tracking-widest text-sm font-medium">{t.cart.subtotal}</span>
-              <span className="font-medium">
-                {formatPrice(cart.totals.total_price, cart.totals.currency_code, 10 ** (cart.totals.currency_minor_unit || 2))}
-              </span>
-            </div>
-            
-            {(() => {
-              const totalPrice = parseFloat(cart.totals.total_price || "0") / (10 ** (cart.totals.currency_minor_unit || 2));
-              return (
-                <div className="mb-4">
-                  <TabbyPromo price={totalPrice} currency={cart.totals.currency_code || "AED"} source="cart" />
-                </div>
-              );
-            })()}
+        {cart && cart.items && cart.items.length > 0 && cart.totals && (() => {
+          const divisor = 10 ** (cart.totals.currency_minor_unit || 2);
+          const totalShippingMinor = parseInt(cart.totals.total_shipping || "0", 10);
+          const totalShippingTaxMinor = parseInt(cart.totals.total_shipping_tax || "0", 10);
+          const totalPriceMinor = parseInt(cart.totals.total_price || "0", 10);
+          const itemsGrossMinor = Math.max(0, totalPriceMinor - totalShippingMinor - totalShippingTaxMinor);
+          const itemsPrice = itemsGrossMinor / divisor;
 
-            <p className="text-brand-text-muted text-xs mb-6 text-center">
-              {locale === "ar" ? "شامل ضريبة القيمة المضافة 5%. يتم حساب الشحن عند إتمام الدفع." : "Includes 5% VAT. Shipping calculated at checkout."}
-            </p>
-            <Link
-              href="/checkout"
-              onClick={() => setCartOpen(false)}
-              className="flex items-center justify-center w-full py-4 bg-brand-text text-white text-sm font-medium tracking-widest uppercase hover:bg-brand-accent transition-colors duration-300"
-            >
-              {t.cart.proceed}
-            </Link>
-          </div>
-        )}
+          return (
+            <div className="p-6 lg:p-8 border-t border-brand-border bg-brand-bg">
+              <div className="flex justify-between text-brand-text mb-6">
+                <span className="uppercase tracking-widest text-sm font-medium">{t.cart.subtotal}</span>
+                <span className="font-medium">
+                  {formatPrice(itemsGrossMinor.toString(), cart.totals.currency_code, divisor)}
+                </span>
+              </div>
+              
+              <div className="mb-4">
+                <TabbyPromo price={itemsPrice} currency={cart.totals.currency_code || "AED"} source="cart" />
+              </div>
+
+              <p className="text-brand-text-muted text-xs mb-6 text-center">
+                {locale === "ar" ? "شامل ضريبة القيمة المضافة 5%. يتم حساب الشحن عند إتمام الدفع." : "Includes 5% VAT. Shipping calculated at checkout."}
+              </p>
+              <Link
+                href="/checkout"
+                onClick={() => setCartOpen(false)}
+                className="flex items-center justify-center w-full py-4 bg-brand-text text-white text-sm font-medium tracking-widest uppercase hover:bg-brand-accent transition-colors duration-300"
+              >
+                {t.cart.proceed}
+              </Link>
+            </div>
+          );
+        })()}
       </div>
     </>
   );
