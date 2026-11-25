@@ -36,9 +36,11 @@ export interface PaymentProvider {
   createSession(request: PaymentSessionRequest): Promise<PaymentSessionResponse>;
 
   /**
-   * Verifies the webhook signature if applicable.
+   * Verifies the webhook signature. Must return false when the provider's webhook
+   * secret is not configured: an unverifiable webhook is never accepted.
+   * `url` is the request URL, for providers that sign via a query parameter (Paymob).
    */
-  verifyWebhook(headers: Headers, rawBody: string): boolean;
+  verifyWebhook(headers: Headers, rawBody: string, url?: URL): boolean;
 
   /**
    * Parses and handles the incoming webhook payload.
@@ -47,8 +49,11 @@ export interface PaymentProvider {
    * `eventId` is the de-duplication key. Providers that reuse one id across every event on
    * a payment (Tabby does) must supply a key that is unique per event, otherwise later
    * events such as refunds are discarded as repeats. Omit it to fall back to `payload.id`.
+   *
+   * `amountPaid` (major units) and `currency`, when the provider's signed data carries
+   * them, are checked against the order before it is marked paid.
    */
-  handleWebhookEvent(payload: any): Promise<{ orderId: number; status: 'pending' | 'authorized' | 'processing' | 'completed' | 'cancelled' | 'failed' | 'refunded', eventId?: string, transactionId?: string, provider?: string, metadata?: Record<string, any> } | null>;
+  handleWebhookEvent(payload: any): Promise<{ orderId: number; status: 'pending' | 'authorized' | 'processing' | 'completed' | 'cancelled' | 'failed' | 'refunded', eventId?: string, transactionId?: string, provider?: string, metadata?: Record<string, any>, amountPaid?: number, currency?: string } | null>;
 
   /**
    * Evaluates if the provider is eligible for the current cart/order.

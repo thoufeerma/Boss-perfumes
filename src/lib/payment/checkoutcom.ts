@@ -1,4 +1,5 @@
 import { PaymentProvider, PaymentSessionRequest, PaymentSessionResponse } from "./types";
+import { safeEqual } from "./verification";
 import crypto from "crypto";
 import { paymentConfig } from "./config";
 
@@ -101,10 +102,9 @@ export class CheckoutComProvider implements PaymentProvider {
     // The secret is configured in the Checkout.com Dashboard for the webhook
     const webhookSecret = process.env.CHECKOUT_WEBHOOK_SECRET;
     
-    // If no secret is configured, we accept it for now (in a real prod app, enforce this)
     if (!webhookSecret) {
-      console.warn("CHECKOUT_WEBHOOK_SECRET is not set. Skipping signature verification.");
-      return true;
+      console.error("CHECKOUT_WEBHOOK_SECRET is not set. Rejecting webhook: it cannot be verified.");
+      return false;
     }
 
     const hash = crypto
@@ -112,7 +112,7 @@ export class CheckoutComProvider implements PaymentProvider {
       .update(rawBody, "utf8")
       .digest("hex");
 
-    return hash === signature;
+    return safeEqual(hash, signature);
   }
 
   async handleWebhookEvent(payload: any): Promise<{ orderId: number; status: "pending" | "authorized" | "processing" | "completed" | "cancelled" | "failed" | "refunded", transactionId?: string, provider?: string } | null> {

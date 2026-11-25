@@ -1,6 +1,7 @@
 import { PaymentProvider, PaymentSessionRequest, PaymentSessionResponse } from "./types";
 import { paymentConfig } from "./config";
 import crypto from "crypto";
+import { safeEqual } from "./verification";
 
 export class PaymobProvider implements PaymentProvider {
   private apiKey: string;
@@ -231,27 +232,32 @@ export class PaymobProvider implements PaymentProvider {
   /**
    * Verifies Paymob's HMAC-SHA512 signature on webhooks and transaction callbacks.
    */
-  verifyWebhook(headers: Headers, rawBody: string): boolean {
+  verifyWebhook(headers: Headers, rawBody: string, url?: URL): boolean {
     if (!this.hmacSecret) {
-      console.warn("[Paymob] PAYMOB_HMAC_SECRET is not configured. Skipping HMAC verification.");
-      return true;
+      console.error("[Paymob] PAYMOB_HMAC_SECRET is not configured. Rejecting webhook: it cannot be verified.");
+      return false;
     }
 
     try {
       const payload = JSON.parse(rawBody);
-      const signature = headers.get("hmac") || headers.get("x-paymob-signature");
+      // Paymob's "transaction processed" callback puts the signature in the `hmac` query
+      // parameter; some integrations send it as a header instead.
+      const signature =
+        url?.searchParams.get("hmac") ||
+        headers.get("hmac") ||
+        headers.get("x-paymob-signature");
+
+      if (!signature) {
+        console.warn("[Paymob] Webhook has no HMAC signature. Rejecting.");
+        return false;
+      }
 
       // Paymob webhook JSON encapsulates transaction data inside `obj`
       const obj = payload.obj || payload;
       if (!obj) return false;
 
       const calculatedHmac = this.calculateHmac(obj);
-
-      if (signature) {
-        return calculatedHmac.toLowerCase() === signature.toLowerCase();
-      }
-
-      return true;
+      return safeEqual(calculatedHmac.toLowerCase(), signature.toLowerCase());
     } catch (e) {
       console.error("[Paymob] HMAC verification error:", e);
       return false;
@@ -305,6 +311,8 @@ export class PaymobProvider implements PaymentProvider {
     transactionId?: string;
     provider?: string;
     metadata?: Record<string, any>;
+    amountPaid?: number;
+    currency?: string;
   } | null> {
     if (!payload) return null;
 
@@ -349,6 +357,9 @@ export class PaymobProvider implements PaymentProvider {
       transactionId,
       eventId: `paymob_txn_${transactionId}`,
       provider: "Paymob",
+      // Both fields are covered by the HMAC, so they can be trusted once it verifies.
+      amountPaid: Number(obj.amount_cents) / 100,
+      currency: obj.currency ? String(obj.currency) : undefined,
       metadata: {
         _paymob_transaction_id: transactionId,
         _paymob_order_id: String(obj.order?.id || ""),

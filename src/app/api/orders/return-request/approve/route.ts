@@ -1,28 +1,59 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { fetchWC } from "@/api/client";
 import { paymentConfig } from "@/lib/payment/config";
 
+function secretsMatch(provided: string, expected: string): boolean {
+  const a = crypto.createHash("sha256").update(provided).digest();
+  const b = crypto.createHash("sha256").update(expected).digest();
+  return crypto.timingSafeEqual(a, b);
+}
+
+/**
+ * Approves a return and issues the refund (a real Tabby refund for Tabby orders).
+ * Staff-only: every call must carry RETURNS_ADMIN_SECRET, in the `x-admin-secret`
+ * header or as `adminSecret` in the body. With no secret configured the endpoint is off.
+ */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { orderId, amount, adminSecret } = body;
+    const expectedSecret = process.env.RETURNS_ADMIN_SECRET;
+    if (!expectedSecret || expectedSecret.length < 24) {
+      console.error("[Return Approve] RETURNS_ADMIN_SECRET is not set (or shorter than 24 characters); endpoint disabled.");
+      return NextResponse.json({ error: "Return approval is not configured" }, { status: 503 });
+    }
 
-    // Optional admin secret verification (or fallback to webhook secret)
-    const expectedSecret = process.env.TABBY_WEBHOOK_SECRET || "bossperfumes-tabby-secret-123";
-    if (adminSecret && adminSecret !== expectedSecret) {
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    }
+    const { orderId, amount } = body;
+
+    const providedSecret = request.headers.get("x-admin-secret") || body.adminSecret;
+    if (typeof providedSecret !== "string" || !secretsMatch(providedSecret, expectedSecret)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!orderId) {
-      return NextResponse.json({ error: "Order ID is required" }, { status: 400 });
+    const numericOrderId = Number(orderId);
+    if (!Number.isInteger(numericOrderId) || numericOrderId <= 0) {
+      return NextResponse.json({ error: "A valid order ID is required" }, { status: 400 });
     }
 
-    const order = await fetchWC(`orders/${orderId}`);
+    const order = await fetchWC(`orders/${numericOrderId}`);
     if (!order || !order.id) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    const refundAmount = amount ? parseFloat(amount).toFixed(2) : parseFloat(order.total || "0").toFixed(2);
+    if (order.status === "refunded") {
+      return NextResponse.json({ error: "Order is already refunded" }, { status: 409 });
+    }
+
+    const orderTotal = parseFloat(order.total || "0");
+    const requestedAmount = amount !== undefined && amount !== null && amount !== "" ? parseFloat(amount) : orderTotal;
+    if (!Number.isFinite(requestedAmount) || requestedAmount <= 0 || requestedAmount > orderTotal + 0.001) {
+      return NextResponse.json({ error: "Refund amount must be greater than 0 and no more than the order total" }, { status: 400 });
+    }
+
+    const refundAmount = requestedAmount.toFixed(2);
     const paymentMethod = String(order.payment_method || "").toLowerCase();
     const isTabby = paymentMethod.includes("tabby") || order.meta_data?.some((m: any) => m.key === "_payment_provider" && m.value === "Tabby");
 

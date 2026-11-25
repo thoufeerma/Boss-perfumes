@@ -1,4 +1,5 @@
 import { PaymentProvider, PaymentSessionRequest, PaymentSessionResponse } from "./types";
+import { safeEqual } from "./verification";
 import { paymentConfig } from "./config";
 import crypto from "crypto";
 
@@ -83,8 +84,8 @@ export class TelrProvider implements PaymentProvider {
 
     const webhookSecret = paymentConfig.telr.webhookSecret;
     if (!webhookSecret) {
-      console.warn("TELR_WEBHOOK_SECRET is not set. Skipping signature verification.");
-      return true;
+      console.error("TELR_WEBHOOK_SECRET is not set. Rejecting webhook: it cannot be verified.");
+      return false;
     }
 
     const hash = crypto
@@ -92,7 +93,7 @@ export class TelrProvider implements PaymentProvider {
       .update(rawBody, "utf8")
       .digest("hex");
 
-    return hash === signature;
+    return safeEqual(hash, signature);
   }
 
   async handleWebhookEvent(payload: any): Promise<{ orderId: number; status: "pending" | "authorized" | "processing" | "completed" | "cancelled" | "failed" | "refunded", transactionId?: string, provider?: string } | null> {

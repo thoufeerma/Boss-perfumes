@@ -50,8 +50,8 @@ export class WooPaymentsProvider implements PaymentProvider {
 
   verifyWebhook(headers: Headers, rawBody: string): boolean {
     if (!this.webhookSecret) {
-      // If no secret configured, accept the webhook
-      return true;
+      console.error("[WooPayments] WOOPAYMENTS_WEBHOOK_SECRET is not configured. Rejecting webhook: it cannot be verified.");
+      return false;
     }
 
     const signature = headers.get("x-wc-webhook-signature");

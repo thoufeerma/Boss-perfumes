@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPaymentProvider } from "./providerFactory";
 import { fetchWC } from "@/api/client";
+import { getEnabledPaymentMethods } from "./registry";
+import { amountCoversOrder, claimTransactionForOrder, isPaidStatus } from "./verification";
 
 export async function processWebhook(request: NextRequest, providerId?: string) {
   try {
@@ -33,10 +35,21 @@ export async function processWebhook(request: NextRequest, providerId?: string) 
       // Add Telr detection here later if needed
     }
 
-    const provider = getPaymentProvider(detectedProviderId);
+    // Only gateways that are switched on may change orders. Without this, the webhook
+    // code of a disabled gateway (Checkout.com, Telr, ...) is still reachable at
+    // /api/payment/webhook?provider=<name>.
+    const normalizedProviderId = String(detectedProviderId || "").toLowerCase();
+    const canonicalProviderId = normalizedProviderId === "woocommerce" ? "woopayments" : normalizedProviderId;
+    const enabledIds = getEnabledPaymentMethods().map((m) => m.id);
+    if (!canonicalProviderId || !enabledIds.includes(canonicalProviderId)) {
+      console.warn(`[Webhook] Rejected webhook for disabled or unknown provider "${detectedProviderId}".`);
+      return NextResponse.json({ error: "Provider not enabled" }, { status: 404 });
+    }
 
-    // Verify Webhook Signature
-    const isValid = provider.verifyWebhook(request.headers, rawBody);
+    const provider = getPaymentProvider(canonicalProviderId);
+
+    // Verify Webhook Signature (fails closed when the provider's secret is not configured)
+    const isValid = provider.verifyWebhook(request.headers, rawBody, request.nextUrl);
     if (!isValid) {
       console.warn("Invalid webhook signature");
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
@@ -60,12 +73,46 @@ export async function processWebhook(request: NextRequest, providerId?: string) 
       return NextResponse.json({ received: true });
     }
 
-    const { orderId, status, eventId: providerEventId, transactionId, provider: providerName, metadata: providerMetadata } = event;
+    const { orderId, status, eventId: providerEventId, transactionId, provider: providerName, metadata: providerMetadata, amountPaid, currency } = event;
 
     // Fetch current order to check state and idempotency
     const currentOrder = await fetchWC(`orders/${orderId}`, { method: "GET" });
     if (!currentOrder || currentOrder.id !== orderId) {
        return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    if (isPaidStatus(status)) {
+      // The payment must cover this order, in this order's currency.
+      if (amountPaid !== undefined && !amountCoversOrder(amountPaid, currentOrder)) {
+        console.error(`[Webhook] Order ${orderId}: paid ${amountPaid} but order total is ${currentOrder.total}. Not marking paid.`);
+        await fetchWC(`orders/${orderId}/notes`, {
+          method: "POST",
+          body: JSON.stringify({
+            note: `⚠️ Payment notification rejected: amount paid (${amountPaid}) is less than the order total (${currentOrder.total}). Provider: ${providerName || canonicalProviderId}, transaction: ${transactionId || "N/A"}.`,
+            customer_note: false,
+          }),
+        });
+        return NextResponse.json({ error: "Amount does not match order" }, { status: 400 });
+      }
+      if (currency && currentOrder.currency && currency.toUpperCase() !== String(currentOrder.currency).toUpperCase()) {
+        console.error(`[Webhook] Order ${orderId}: paid in ${currency} but order is in ${currentOrder.currency}. Not marking paid.`);
+        return NextResponse.json({ error: "Currency does not match order" }, { status: 400 });
+      }
+
+      // One transaction can pay for one order only.
+      if (transactionId) {
+        let claimed = false;
+        try {
+          claimed = await claimTransactionForOrder(canonicalProviderId, transactionId, orderId);
+        } catch (err) {
+          console.error("[Webhook] Could not record transaction claim (Redis unavailable):", err);
+          return NextResponse.json({ error: "Temporarily unable to process" }, { status: 503 });
+        }
+        if (!claimed) {
+          console.error(`[Webhook] Transaction ${transactionId} is already bound to another order; refusing to mark order ${orderId} paid.`);
+          return NextResponse.json({ error: "Transaction already used for another order" }, { status: 409 });
+        }
+      }
     }
 
     const processedEvents = currentOrder.meta_data.find((m: any) => m.key === "_processed_webhook_events")?.value || [];

@@ -126,8 +126,8 @@ export class NomodProvider implements PaymentProvider {
    */
   verifyWebhook(headers: Headers, rawBody: string): boolean {
     if (!this.webhookSecret) {
-      console.warn("[Nomod] NOMOD_WEBHOOK_SECRET is not configured. Skipping webhook signature verification.");
-      return true;
+      console.error("[Nomod] NOMOD_WEBHOOK_SECRET is not configured. Rejecting webhook: it cannot be verified.");
+      return false;
     }
 
     const signature =

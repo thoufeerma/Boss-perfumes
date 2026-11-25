@@ -1,4 +1,5 @@
 import { PaymentProvider, PaymentSessionRequest, PaymentSessionResponse } from "./types";
+import { safeEqual } from "./verification";
 import crypto from "crypto";
 import { paymentConfig } from "./config";
 import { paymentMessages } from "@/lib/i18n/messages";
@@ -270,9 +271,9 @@ export class TabbyProvider implements PaymentProvider {
     const cleanSecret = secret.replace(/['"]/g, '').trim();
     const cleanExpected = expectedSecret.replace(/['"]/g, '').trim();
 
-    if (cleanSecret !== cleanExpected) {
-      console.warn(`Webhook secret mismatch! Received length: ${cleanSecret.length}, Expected length: ${cleanExpected.length}.`);
-      console.warn(`Received starts with: ${cleanSecret.substring(0, 3)}..., Expected starts with: ${cleanExpected.substring(0, 3)}...`);
+    // Never log any part of either secret.
+    if (!safeEqual(cleanSecret, cleanExpected)) {
+      console.warn("Tabby webhook secret mismatch. Rejecting.");
       return false;
     }
 
