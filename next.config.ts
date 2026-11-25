@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
   images: {
+    // Serve images straight from WordPress / public instead of Vercel's Image
+    // Optimization, whose monthly allowance ran out (every /_next/image request
+    // returned 402 OPTIMIZED_IMAGE_REQUEST_PAYMENT_REQUIRED and no photos showed).
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
