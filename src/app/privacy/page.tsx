@@ -66,7 +66,7 @@ export default async function PrivacyPage() {
             <p className="mb-6">
               لأية استفسارات تتعلق بسياسة الخصوصية وحماية البيانات، يسعدنا تواصلكم معنا عبر:<br />
               <strong>شركة بوس للتجارة العامة ذ.م.م</strong><br />
-              البريد الإلكتروني: <a href="mailto:brbossperfumes@gmail.com" className="text-brand-text underline hover:text-brand-accent">brbossperfumes@gmail.com</a><br />
+              البريد الإلكتروني: <a href="mailto:Bossgen@emirates.net.ae" className="text-brand-text underline hover:text-brand-accent">Bossgen@emirates.net.ae</a><br />
               الهاتف: +971 4 235 6130 / +971 4 3983968
             </p>
 
@@ -128,7 +128,7 @@ export default async function PrivacyPage() {
           <p className="mb-6">
             For any privacy-related inquiries, you can reach us at:<br/>
             <strong>Boss General Trading LLC</strong><br/>
-            Email: <a href="mailto:brbossperfumes@gmail.com" className="text-brand-text underline hover:text-brand-accent">brbossperfumes@gmail.com</a><br/>
+            Email: <a href="mailto:Bossgen@emirates.net.ae" className="text-brand-text underline hover:text-brand-accent">Bossgen@emirates.net.ae</a><br/>
             Phone: +971 4 235 6130 / +971 4 3983968
           </p>
           

@@ -68,7 +68,7 @@ export default async function ShippingPage() {
 
             <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">7. معلومات الاتصال والاستفسار</h2>
             <p className="mb-6">
-              إذا كان لديكم أي سؤال بخصوص شحن وتوصيل طلبكم، يُرجى مراسلتنا عبر: <a href="mailto:brbossperfumes@gmail.com" className="text-brand-text underline hover:text-brand-accent">brbossperfumes@gmail.com</a>.
+              إذا كان لديكم أي سؤال بخصوص شحن وتوصيل طلبكم، يُرجى مراسلتنا عبر: <a href="mailto:Bossgen@emirates.net.ae" className="text-brand-text underline hover:text-brand-accent">Bossgen@emirates.net.ae</a>.
             </p>
 
             <div className="mt-12 pt-8 border-t border-brand-border text-sm text-center">
@@ -132,7 +132,7 @@ export default async function ShippingPage() {
 
           <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">7. Contact Information</h2>
           <p className="mb-6">
-            If you have any questions about the delivery of your order, please contact us at <a href="mailto:brbossperfumes@gmail.com" className="text-brand-text underline hover:text-brand-accent">brbossperfumes@gmail.com</a>.
+            If you have any questions about the delivery of your order, please contact us at <a href="mailto:Bossgen@emirates.net.ae" className="text-brand-text underline hover:text-brand-accent">Bossgen@emirates.net.ae</a>.
           </p>
           
           <div className="mt-12 pt-8 border-t border-brand-border text-sm text-center">

@@ -70,7 +70,7 @@ export default async function RefundPage() {
             <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">7. بيانات التواصل لطلبات الإرجاع</h2>
             <p className="mb-6">
               لبدء طلب استرجاع أو تقديم استفسار، يُرجى التواصل مع فريق خدمة العملاء:<br />
-              البريد الإلكتروني: <a href="mailto:brbossperfumes@gmail.com" className="text-brand-text underline hover:text-brand-accent">brbossperfumes@gmail.com</a><br />
+              البريد الإلكتروني: <a href="mailto:Bossgen@emirates.net.ae" className="text-brand-text underline hover:text-brand-accent">Bossgen@emirates.net.ae</a><br />
               الهاتف: +971 4 235 6130
             </p>
 
@@ -137,7 +137,7 @@ export default async function RefundPage() {
           <h2 className="text-xl font-medium text-brand-text mt-8 mb-4">7. Contact Details for Returns</h2>
           <p className="mb-6">
             To initiate a return, please contact our customer service team:<br/>
-            Email: <a href="mailto:brbossperfumes@gmail.com" className="text-brand-text underline hover:text-brand-accent">brbossperfumes@gmail.com</a><br/>
+            Email: <a href="mailto:Bossgen@emirates.net.ae" className="text-brand-text underline hover:text-brand-accent">Bossgen@emirates.net.ae</a><br/>
             Phone: +971 4 235 6130
           </p>
           

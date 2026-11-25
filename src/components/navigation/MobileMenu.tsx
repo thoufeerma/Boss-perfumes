@@ -101,7 +101,7 @@ export function MobileMenu() {
           </div>
           <div>
             <p className="text-xs text-brand-text-muted mb-2 uppercase tracking-widest">{t.menu.needHelp}</p>
-            <a href="mailto:brbossperfumes@gmail.com" className="text-sm text-brand-text hover:underline underline-offset-4">brbossperfumes@gmail.com</a>
+            <a href="mailto:Bossgen@emirates.net.ae" className="text-sm text-brand-text hover:underline underline-offset-4">Bossgen@emirates.net.ae</a>
           </div>
         </div>
       </div>
