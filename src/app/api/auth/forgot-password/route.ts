@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, getClientIp, rateLimitKey } from "@/lib/security";
+
+const GENERIC_SUCCESS = { success: true, message: "If an account exists, a reset link has been sent." };
 
 export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();
 
-    if (!email) {
+    if (!email || typeof email !== "string") {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    }
+
+    // Stops this form being used to flood someone's inbox with reset emails.
+    if (!(await checkRateLimit(`forgot_ip:${getClientIp(req)}`, 5, 15 * 60))) {
+      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
+    }
+    if (!(await checkRateLimit(`forgot_email:${rateLimitKey(email)}`, 3, 60 * 60))) {
+      // Same answer as success, so the limit does not reveal whether the account exists.
+      return NextResponse.json(GENERIC_SUCCESS, { status: 200 });
     }
 
     const storeUrl = process.env.NEXT_PUBLIC_WC_STORE_URL;
@@ -19,13 +31,14 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({ email }),
     });
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      return NextResponse.json({ error: data.message || "Failed to process request" }, { status: res.status });
+    if (res.status >= 500) {
+      console.error("Forgot password: WordPress returned", res.status);
+      return NextResponse.json({ error: "Failed to process request. Please try again." }, { status: 502 });
     }
 
-    return NextResponse.json({ success: true, message: "If an account exists, a reset link has been sent." }, { status: 200 });
+    // Whether or not the email has an account, answer the same way, so the form cannot
+    // be used to find out who shops here.
+    return NextResponse.json(GENERIC_SUCCESS, { status: 200 });
   } catch (error) {
     console.error("Forgot password route error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

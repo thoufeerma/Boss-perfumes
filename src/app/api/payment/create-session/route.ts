@@ -101,8 +101,27 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    orderId = existingOrderId;
+    // A retry may reuse the pending order from the previous attempt, but only the shopper
+    // who created it may touch it: same signed-in customer, or (for guests) the same
+    // WooCommerce cart session. Anything else gets a fresh order instead.
+    orderId = null;
     let orderResponse: any = null;
+    const requestedOrderId = Number(existingOrderId);
+    if (Number.isInteger(requestedOrderId) && requestedOrderId > 0) {
+      const existingOrder = await fetchWC(`orders/${requestedOrderId}`);
+      const orderCartToken = existingOrder?.meta_data?.find((m: any) => m.key === "_wc_cart_token")?.value;
+      const ownsOrder = existingOrder?.id === requestedOrderId && (
+        customerId > 0
+          ? existingOrder.customer_id === customerId
+          : existingOrder.customer_id === 0 && typeof orderCartToken === "string" && orderCartToken === cartToken
+      );
+      const isRetryable = ["pending", "failed"].includes(existingOrder?.status);
+      if (ownsOrder && isRetryable) {
+        orderId = requestedOrderId;
+      } else {
+        console.warn(`[Create Session] Ignoring existingOrderId ${requestedOrderId}: not owned by this shopper or not retryable.`);
+      }
+    }
 
     if (!orderId) {
       // 3. Create Pending WooCommerce Order directly via Server-to-Server REST API

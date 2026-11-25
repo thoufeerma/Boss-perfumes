@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchWC } from "@/api/client";
 import { getRegistrationState, saveRegistrationState, deleteRegistrationState } from "@/lib/redis";
-import { hashOTP, decryptPassword, checkRateLimit } from "@/lib/security";
+import { hashOTP, decryptPassword, checkRateLimit, getClientIp } from "@/lib/security";
 import { setAuthCookie } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
     // Rate limiting
-    const ip = req.headers.get('x-forwarded-for') || 'unknown';
+    const ip = getClientIp(req);
     const isIpAllowed = await checkRateLimit(`ip_verify:${ip}`, 10, 60); // 10 attempts per minute
     if (!isIpAllowed) {
       return NextResponse.json({ error: "Too many attempts. Please try again later." }, { status: 429 });

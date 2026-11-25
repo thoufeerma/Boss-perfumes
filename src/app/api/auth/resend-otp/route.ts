@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getRegistrationState, saveRegistrationState, deleteRegistrationState } from "@/lib/redis";
 import { generateOTP } from "@/lib/otp";
 import { sendOTPEmail } from "@/lib/email";
-import { hashOTP, checkRateLimit } from "@/lib/security";
+import { hashOTP, checkRateLimit, getClientIp } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
   try {
     // Rate limiting
-    const ip = req.headers.get('x-forwarded-for') || 'unknown';
+    const ip = getClientIp(req);
     const isIpAllowed = await checkRateLimit(`ip_resend:${ip}`, 5, 60); // 5 attempts per minute
     if (!isIpAllowed) {
       return NextResponse.json({ error: "Too many attempts. Please try again later." }, { status: 429 });

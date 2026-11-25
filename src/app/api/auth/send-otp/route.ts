@@ -3,13 +3,13 @@ import { fetchWC } from "@/api/client";
 import { generateOTP } from "@/lib/otp";
 import { sendOTPEmail } from "@/lib/email";
 import { saveRegistrationState } from "@/lib/redis";
-import { hashOTP, encryptPassword, checkRateLimit } from "@/lib/security";
+import { hashOTP, encryptPassword, checkRateLimit, getClientIp, rateLimitKey } from "@/lib/security";
 import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
   try {
     // 1. IP-based rate limiting
-    const ip = req.headers.get('x-forwarded-for') || 'unknown';
+    const ip = getClientIp(req);
     const isIpAllowed = await checkRateLimit(`ip:${ip}`, 5, 60); // 5 requests per minute
     if (!isIpAllowed) {
       return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Email-based rate limiting
-    const isEmailAllowed = await checkRateLimit(`email:${email}`, 3, 60); // 3 requests per minute per email
+    const isEmailAllowed = await checkRateLimit(`email:${rateLimitKey(email)}`, 3, 60); // 3 requests per minute per email
     if (!isEmailAllowed) {
       return NextResponse.json({ error: "Too many requests for this email. Please try again later." }, { status: 429 });
     }

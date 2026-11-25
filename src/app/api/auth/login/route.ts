@@ -1,12 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { setAuthCookie } from "@/lib/auth";
+import { checkRateLimit, getClientIp, rateLimitKey } from "@/lib/security";
+
+const TOO_MANY = { error: "Too many sign-in attempts. Please wait a few minutes and try again." };
 
 export async function POST(req: NextRequest) {
   try {
     const { username, password, rememberMe } = await req.json();
 
-    if (!username || !password) {
+    if (!username || !password || typeof username !== "string" || typeof password !== "string") {
       return NextResponse.json({ error: "Username and password are required" }, { status: 400 });
+    }
+
+    // Slow down password guessing: per client IP, and per account so rotating IPs does
+    // not help against a single account.
+    if (!(await checkRateLimit(`login_ip:${getClientIp(req)}`, 20, 5 * 60))) {
+      return NextResponse.json(TOO_MANY, { status: 429 });
+    }
+    if (!(await checkRateLimit(`login_user:${rateLimitKey(username)}`, 10, 15 * 60))) {
+      return NextResponse.json(TOO_MANY, { status: 429 });
     }
 
     const authUrl = process.env.JWT_AUTH_URL;
@@ -23,10 +35,12 @@ export async function POST(req: NextRequest) {
     const data = await res.json();
 
     if (!res.ok) {
-      return NextResponse.json(
-        { error: data.message || "Invalid credentials" },
-        { status: res.status }
-      );
+      // WordPress says whether the username or the password was wrong; passing that on
+      // tells an attacker which emails have accounts. Answer the same way for both.
+      if (res.status >= 500) {
+        return NextResponse.json({ error: "Sign-in is temporarily unavailable. Please try again." }, { status: 502 });
+      }
+      return NextResponse.json({ error: "Incorrect email or password." }, { status: 401 });
     }
 
     if (data.token) {

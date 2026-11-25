@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, getClientIp, rateLimitKey } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
   try {
@@ -6,6 +7,14 @@ export async function POST(req: NextRequest) {
 
     if (!token || !email || !password) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Reset keys are long, but there is no reason to allow unlimited guesses.
+    if (
+      !(await checkRateLimit(`reset_ip:${getClientIp(req)}`, 10, 15 * 60)) ||
+      !(await checkRateLimit(`reset_email:${rateLimitKey(email)}`, 10, 15 * 60))
+    ) {
+      return NextResponse.json({ error: "Too many attempts. Please try again later." }, { status: 429 });
     }
 
     const storeUrl = process.env.NEXT_PUBLIC_WC_STORE_URL;
